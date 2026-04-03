@@ -1,4 +1,4 @@
-// ── CONFIGURATION (Updated with your credentials) ────────────────────────────
+// ── CONFIGURATION ────────────────────────────────────────────
 const SUPABASE_URL  = "https://yksrbucnboocbeqspbfo.supabase.co";
 const SUPABASE_KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlrc3JidWNuYm9vY2JlcXNwYmZvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTE5MDkyNSwiZXhwIjoyMDkwNzY2OTI1fQ.c_myWAzQz4jzZTM843lXCWBTIyFh3YEzhKZl7sbX3qs"; 
 const RESEND_KEY    = "sb_publishable_7hHGKm7Hpb6FoL9C02ZDkA_s_EpVYFo"; 
@@ -96,7 +96,6 @@ async function sb(path, method = 'GET', body = null, extra = '') {
 }
 
 function hashPass(p) {
-  // Simple SHA-256 via Web Crypto — available in Node 18+
   const { createHash } = require('crypto');
   return createHash('sha256').update(p).digest('hex');
 }
@@ -107,15 +106,27 @@ async function login({ username, password }) {
   const rows = await sb(`users?username=eq.${encodeURIComponent(username)}&password=eq.${hashed}&status=eq.active&select=id,username,role,full_name,email`);
   if (!rows.length) return { success: false, message: 'Invalid credentials or account inactive' };
   const u = rows[0];
-  // update last_login
   await sb(`users?id=eq.${u.id}`, 'PATCH', { last_login: new Date().toISOString() });
+  // Map fields to match HTML (full_name -> fullName)
   return { success: true, user: { id: u.id, username: u.username, role: u.role, fullName: u.full_name, email: u.email } };
 }
 
 // ── USERS ─────────────────────────────────────────────────────
 async function getUsers() {
   const rows = await sb('users?select=id,username,role,full_name,email,phone,status,created_at,last_login&order=created_at.asc');
-  return { success: true, data: rows };
+  // MAPPING: Ensure DB keys match Frontend table headers
+  const mappedData = rows.map(u => ({
+    UserID: u.id,
+    Username: u.username,
+    Role: u.role,
+    FullName: u.full_name,
+    Email: u.email,
+    Phone: u.phone,
+    Status: u.status,
+    CreatedAt: u.created_at,
+    LastLogin: u.last_login
+  }));
+  return { success: true, data: mappedData };
 }
 async function addUser({ username, password, role, fullName, email, phone }) {
   const row = await sb('users', 'POST', { username, password: hashPass(password), role, full_name: fullName||'', email:email||'', phone:phone||'', status:'active' });
@@ -137,7 +148,22 @@ async function getWorkers({ status } = {}) {
   let q = 'workers?select=*&order=created_at.asc';
   if (status) q += `&status=eq.${status}`;
   const rows = await sb(q);
-  return { success: true, data: rows };
+  // MAPPING
+  const mapped = rows.map(w => ({
+    WorkerID: w.id,
+    EmployeeCode: w.employee_code,
+    Name: w.name,
+    Department: w.department,
+    Designation: w.designation,
+    Phone: w.phone,
+    Email: w.email,
+    JoiningDate: w.joining_date,
+    Status: w.status,
+    Address: w.address,
+    MeterNumber: w.meter_number,
+    CreatedAt: w.created_at
+  }));
+  return { success: true, data: mapped };
 }
 async function addWorker(d) {
   const row = await sb('workers', 'POST', {
@@ -180,7 +206,21 @@ async function getMeters({ status } = {}) {
   let q = 'meters?select=*&order=meter_number.asc';
   if (status) q += `&status=eq.${status}`;
   const rows = await sb(q);
-  return { success: true, data: rows };
+  // MAPPING
+  const mapped = rows.map(m => ({
+    MeterID: m.id,
+    MeterNumber: m.meter_number,
+    Location: m.location,
+    WorkerID: m.worker_id,
+    WorkerName: m.worker_name,
+    InstallDate: m.install_date,
+    Status: m.status,
+    MaxLoad: m.max_load,
+    Phase: m.phase,
+    Remarks: m.remarks,
+    CreatedAt: m.created_at
+  }));
+  return { success: true, data: mapped };
 }
 async function addMeter(d) {
   const row = await sb('meters', 'POST', {
@@ -223,7 +263,25 @@ async function getReadings({ meter_id, worker_id, month, year } = {}) {
   if (month)     q += `&month=eq.${month}`;
   if (year)      q += `&year=eq.${year}`;
   const rows = await sb(q);
-  return { success: true, data: rows };
+  // MAPPING
+  const mapped = rows.map(r => ({
+    ReadingID: r.id,
+    MeterID: r.meter_id,
+    MeterNumber: r.meter_number,
+    WorkerID: r.worker_id,
+    WorkerName: r.worker_name,
+    ReadingDate: r.reading_date,
+    ReadingValue: r.reading_value,
+    PreviousReading: r.previous_reading,
+    Consumption: r.consumption,
+    Month: r.month,
+    Year: r.year,
+    EnteredBy: r.entered_by,
+    IsAnomaly: r.is_anomaly ? 'true' : 'false', // Frontend checks for string 'true'
+    AnomalyReason: r.anomaly_reason,
+    CreatedAt: r.created_at
+  }));
+  return { success: true, data: mapped };
 }
 
 async function addReading(d) {
@@ -244,7 +302,6 @@ async function addReading(d) {
     entered_by: d.EnteredBy || d.entered_by || 'user'
   });
 
-  // Run anomaly check async
   const consumption = parseFloat(d.ReadingValue||d.reading_value) - parseFloat(d.PreviousReading||d.previous_reading||0);
   checkAnomaly(d.MeterID||d.meter_id, d.MeterNumber||d.meter_number, d.WorkerID||d.worker_id, d.WorkerName||d.worker_name, consumption, month, year);
 
@@ -270,7 +327,20 @@ async function deleteReading({ id, ReadingID }) {
 // ── MASTER METER ──────────────────────────────────────────────
 async function getMasterReadings() {
   const rows = await sb('master_meter_readings?select=*&order=reading_date.desc&limit=50');
-  return { success: true, data: rows };
+  // MAPPING
+  const mapped = rows.map(m => ({
+    ReadingID: m.id,
+    ReadingDate: m.reading_date,
+    ReadingValue: m.reading_value,
+    PreviousReading: m.previous_reading,
+    Consumption: m.consumption,
+    Month: m.month,
+    Year: m.year,
+    EnteredBy: m.entered_by,
+    Remarks: m.remarks,
+    CreatedAt: m.created_at
+  }));
+  return { success: true, data: mapped };
 }
 async function addMasterReading(d) {
   const readingDate = d.ReadingDate||d.reading_date||new Date().toISOString().split('T')[0];
@@ -298,7 +368,7 @@ async function getDashboardData() {
     sb('workers?select=id,status'),
     sb('meters?select=id,status'),
     sb('anomalies?select=id,status&status=eq.open'),
-    sb(`meter_readings?select=id,consumption,meter_number,worker_name&month=eq.${month}&year=eq.${year}`),
+    sb(`meter_readings?select=id,consumption,meter_number,worker_name,month,year&month=eq.${month}&year=eq.${year}`),
     sb(`meter_readings?select=consumption&month=eq.${lastMonth}&year=eq.${lastYear}`),
     sb('master_meter_readings?select=reading_value,reading_date&order=reading_date.desc&limit=1')
   ]);
@@ -307,7 +377,6 @@ async function getDashboardData() {
   const totalLastMonth = lastMonthR.reduce((s,r) => s + parseFloat(r.consumption||0), 0);
   const change = totalLastMonth > 0 ? (((totalThisMonth - totalLastMonth) / totalLastMonth) * 100).toFixed(1) : 0;
 
-  // Monthly trend — last 12 months
   const monthlyTrend = [];
   for (let i = 11; i >= 0; i--) {
     const d  = new Date(year, now.getMonth() - i, 1);
@@ -318,7 +387,6 @@ async function getDashboardData() {
     monthlyTrend.push({ month: m2, year: y2, label: d.toLocaleDateString('en-IN',{month:'short',year:'2-digit'}), consumption: total, count: rows.length });
   }
 
-  // Dept-wise consumption this year
   const yearReadings = await sb(`meter_readings?select=consumption,worker_id&year=eq.${year}`);
   const allWorkers   = await sb('workers?select=id,department');
   const workerDeptMap = Object.fromEntries(allWorkers.map(w => [w.id, w.department]));
@@ -328,9 +396,9 @@ async function getDashboardData() {
     deptConsumption[dept] = (deptConsumption[dept]||0) + parseFloat(r.consumption||0);
   });
 
-  // Top 10 consumers this month
-  const topConsumers = [...thisMonthR]
-    .sort((a,b) => parseFloat(b.consumption)-parseFloat(a.consumption))
+  const topConsumers = thisMonthR
+    .map(r => ({ MeterNumber: r.meter_number, WorkerName: r.worker_name, Consumption: r.consumption, Month: r.month, Year: r.year }))
+    .sort((a,b) => parseFloat(b.Consumption)-parseFloat(a.Consumption))
     .slice(0,10);
 
   return {
@@ -347,7 +415,7 @@ async function getDashboardData() {
         openAnomalies:             anomalies.length,
         totalWorkers:              workers.length,
         activeWorkers:             workers.filter(w=>w.status==='active').length,
-        masterMeterValue:          masterR[0]?.reading_value || 0
+        masterMeterReadings:       masterR.length
       },
       monthlyTrend, topConsumers, deptConsumption
     }
@@ -372,20 +440,37 @@ async function getAnomalies({ type, year } = {}) {
   if (type) q += `&type=eq.${type}`;
   if (year) q += `&year=eq.${year}`;
   const rows = await sb(q);
-  return { success: true, data: rows };
+  // MAPPING
+  const mapped = rows.map(a => ({
+    AnomalyID: a.id,
+    MeterID: a.meter_id,
+    MeterNumber: a.meter_number,
+    WorkerID: a.worker_id,
+    WorkerName: a.worker_name,
+    Month: a.month,
+    Year: a.year,
+    Consumption: a.consumption,
+    AverageConsumption: a.average_consumption,
+    DeviationPercent: a.deviation_percent,
+    Type: a.type,
+    Status: a.status,
+    AlertSent: a.alert_sent ? 'true' : 'false',
+    CreatedAt: a.created_at
+  }));
+  return { success: true, data: mapped };
 }
 
 async function checkAnomaly(meterId, meterNumber, workerId, workerName, consumption, month, year) {
   try {
-    // Get last 6 months readings for this meter
     const past = await sb(`meter_readings?meter_id=eq.${meterId}&select=consumption&order=reading_date.desc&limit=6`);
     if (past.length < 2) return;
     const avg = past.reduce((s,r)=>s+parseFloat(r.consumption||0),0) / past.length;
     if (avg === 0) return;
 
-    const settings = await getSettings();
-    const highT = parseFloat(settings.data?.alert_threshold_high||150);
-    const lowT  = parseFloat(settings.data?.alert_threshold_low||20);
+    const settingsRes = await getSettings();
+    const settings = settingsRes.data || {};
+    const highT = parseFloat(settings.alert_threshold_high||150);
+    const lowT  = parseFloat(settings.alert_threshold_low||20);
     const deviation = ((consumption - avg) / avg) * 100;
 
     let type = null;
@@ -400,13 +485,10 @@ async function checkAnomaly(meterId, meterNumber, workerId, workerName, consumpt
       deviation_percent: deviation.toFixed(2), type, status: 'open'
     });
 
-    // Update reading as anomaly
     await sb(`meter_readings?meter_id=eq.${meterId}&month=eq.${month}&year=eq.${year}`,
       'PATCH', { is_anomaly: true, anomaly_reason: `${type} consumption — ${deviation.toFixed(1)}% vs avg ${avg.toFixed(0)}` });
 
-    // Send alert email
-    const s = await getSettings();
-    const emails = (s.data?.supervisor_emails||'').split(',').map(e=>e.trim()).filter(Boolean);
+    const emails = (settings.supervisor_emails||'').split(',').map(e=>e.trim()).filter(Boolean);
     if (emails.length) {
       sendAlertEmail({
         to: emails.join(','),
@@ -425,9 +507,18 @@ async function getInactiveWithConsumption() {
   if (!inactive.length) return { success: true, data: [] };
   const ids = inactive.map(w=>`'${w.id}'`).join(',');
   const readings = await sb(`meter_readings?worker_id=in.(${ids})&month=eq.${month}&year=eq.${year}&consumption=gt.0&select=*`);
+  // MAPPING
   const result = readings.map(r => {
     const w = inactive.find(w=>w.id===r.worker_id)||{};
-    return { ...r, worker_status:'inactive', department: w.department, worker_phone: w.phone };
+    return {
+      MeterNumber: r.meter_number,
+      WorkerName: w.name || r.worker_name,
+      Month: r.month,
+      Year: r.year,
+      Consumption: r.consumption,
+      Department: w.department,
+      WorkerPhone: w.phone
+    };
   });
   return { success: true, data: result };
 }
@@ -460,7 +551,19 @@ async function getReport({ reportType, filters = {} }) {
     q = `meter_readings?select=*&reading_date=gte.${ws.toISOString().split('T')[0]}&reading_date=lte.${we.toISOString().split('T')[0]}&order=reading_date.desc`;
   }
   const rows = await sb(q);
-  return { success: true, data: rows, count: rows.length };
+  // MAPPING FOR REPORT TABLE
+  const mapped = rows.map(r => ({
+    MeterNumber: r.meter_number,
+    WorkerName: r.worker_name,
+    ReadingDate: r.reading_date,
+    PreviousReading: r.previous_reading,
+    ReadingValue: r.reading_value,
+    Consumption: r.consumption,
+    Month: r.month,
+    Year: r.year,
+    IsAnomaly: r.is_anomaly ? 'true' : 'false'
+  }));
+  return { success: true, data: mapped, count: mapped.length };
 }
 
 // ── SETTINGS ──────────────────────────────────────────────────
@@ -476,11 +579,8 @@ async function saveSettings(data) {
   return { success: true, message: 'Settings saved' };
 }
 
-// ── EMAIL (Resend API — free tier 100/day) ────────────────────
+// ── EMAIL (Resend API) ────────────────────
 async function sendAlertEmail({ to, subject, body }) {
-  const settings = await getSettings();
-  const s = settings.data || {};
-
   if (RESEND_KEY) {
     try {
       const r = await fetch('https://api.resend.com/emails', {
@@ -495,12 +595,18 @@ async function sendAlertEmail({ to, subject, body }) {
       return { success: false, message: e.message };
     }
   }
-  // Log even if no email provider configured
   await sb('alert_log', 'POST', { alert_type:'EMAIL', recipient:to, subject, message:body, status:'no_provider' });
-  return { success: false, message: 'No email provider configured. Add RESEND_API_KEY to Vercel env vars.' };
+  return { success: false, message: 'No email provider configured.' };
 }
 
 async function getAlertLog() {
   const rows = await sb('alert_log?select=*&order=sent_at.desc&limit=50');
-  return { success: true, data: rows };
+  // MAPPING
+  const mapped = rows.map(l => ({
+    AlertType: l.alert_type,
+    RecipientEmail: l.recipient,
+    Status: l.status,
+    SentAt: l.sent_at
+  }));
+  return { success: true, data: mapped };
 }
