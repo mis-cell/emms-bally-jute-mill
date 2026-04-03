@@ -1,0 +1,1957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Electric Meter Monitoring System | Bally Jute Mill</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
+<style>
+/* ===================== CSS VARIABLES / THEMES ===================== */
+:root {
+  --primary: #1a3a6b;
+  --primary-light: #2957a4;
+  --accent: #c8a94a;
+  --accent-light: #e8c96a;
+  --bg: #f0f4f8;
+  --bg2: #ffffff;
+  --bg3: #e8edf3;
+  --text: #1a2340;
+  --text2: #4a5568;
+  --text3: #718096;
+  --border: #d2dce8;
+  --success: #198754;
+  --danger: #dc3545;
+  --warning: #ffc107;
+  --info: #0dcaf0;
+  --shadow: 0 2px 16px rgba(26,58,107,0.10);
+  --shadow-lg: 0 8px 32px rgba(26,58,107,0.18);
+  --radius: 12px;
+  --nav-bg: #1a3a6b;
+  --nav-text: #ffffff;
+  --card-bg: #ffffff;
+}
+[data-theme="dark-blue"] { --primary:#0d2137;--primary-light:#1565c0;--accent:#f0b429;--bg:#071626;--bg2:#0d2137;--bg3:#0a1c2e;--text:#e8f0fe;--text2:#b0c4d8;--text3:#7899b5;--border:#1a3a5c;--nav-bg:#0d2137;--card-bg:#0d2137; }
+[data-theme="emerald"] { --primary:#064e3b;--primary-light:#059669;--accent:#f59e0b;--bg:#ecfdf5;--bg2:#ffffff;--bg3:#d1fae5;--text:#022c22;--text2:#065f46;--text3:#047857;--border:#a7f3d0;--nav-bg:#064e3b;--card-bg:#ffffff; }
+[data-theme="royal-purple"] { --primary:#3b0764;--primary-light:#7c3aed;--accent:#f59e0b;--bg:#faf5ff;--bg2:#ffffff;--bg3:#ede9fe;--text:#1e0735;--text2:#5b21b6;--text3:#7c3aed;--border:#ddd6fe;--nav-bg:#3b0764;--card-bg:#ffffff; }
+[data-theme="crimson"] { --primary:#7f1d1d;--primary-light:#dc2626;--accent:#f59e0b;--bg:#fff5f5;--bg2:#ffffff;--bg3:#fee2e2;--text:#450a0a;--text2:#7f1d1d;--text3:#b91c1c;--border:#fecaca;--nav-bg:#7f1d1d;--card-bg:#ffffff; }
+[data-theme="slate"] { --primary:#1e293b;--primary-light:#475569;--accent:#38bdf8;--bg:#f1f5f9;--bg2:#ffffff;--bg3:#e2e8f0;--text:#0f172a;--text2:#334155;--text3:#64748b;--border:#cbd5e1;--nav-bg:#1e293b;--card-bg:#ffffff; }
+[data-theme="midnight"] { --primary:#111827;--primary-light:#374151;--accent:#10b981;--bg:#030712;--bg2:#111827;--bg3:#1f2937;--text:#f9fafb;--text2:#d1d5db;--text3:#9ca3af;--border:#374151;--nav-bg:#111827;--card-bg:#111827; }
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); transition:all 0.3s ease; min-height:100vh; }
+h1,h2,h3,.brand-text { font-family:'Playfair Display',serif; }
+
+/* ===================== LOADER ===================== */
+#app-loader { position:fixed;inset:0;background:var(--primary);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px; }
+.loader-bolt { width:60px;height:60px;fill:var(--accent);animation:pulse 1.2s ease-in-out infinite; }
+.loader-text { color:#fff;font-family:'Playfair Display',serif;font-size:1.4rem;letter-spacing:2px; }
+.loader-bar { width:200px;height:3px;background:rgba(255,255,255,.2);border-radius:99px;overflow:hidden; }
+.loader-progress { height:100%;width:0;background:var(--accent);border-radius:99px;animation:load 2s ease forwards; }
+@keyframes load { to{width:100%} }
+@keyframes pulse { 0%,100%{opacity:.6;transform:scale(1)} 50%{opacity:1;transform:scale(1.1)} }
+
+/* ===================== LOGIN ===================== */
+#login-screen { display:none;position:fixed;inset:0;background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 60%,var(--accent) 100%);z-index:900;align-items:center;justify-content:center; }
+.login-card { background:rgba(255,255,255,.97);border-radius:20px;padding:48px 40px;width:100%;max-width:420px;box-shadow:0 24px 64px rgba(0,0,0,.25);position:relative;overflow:hidden; }
+.login-card::before { content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--primary),var(--accent)); }
+.login-logo { width:64px;height:64px;background:var(--primary);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px; }
+.login-logo svg { fill:var(--accent);width:36px;height:36px; }
+.login-title { font-size:1.6rem;color:var(--primary);text-align:center;margin-bottom:4px; }
+.login-sub { color:var(--text3);text-align:center;font-size:.9rem;margin-bottom:32px; }
+.login-input { width:100%;padding:12px 16px;border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.95rem;color:var(--text);background:#f8fafc;transition:border-color .2s; }
+.login-input:focus { outline:none;border-color:var(--primary-light); }
+.login-btn { width:100%;padding:14px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:.5px; }
+.login-btn:hover { background:var(--primary-light);transform:translateY(-1px);box-shadow:0 4px 16px rgba(26,58,107,.3); }
+
+/* ===================== NAVBAR ===================== */
+#main-app { display:none; }
+.navbar-emms { background:var(--nav-bg);padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 16px rgba(0,0,0,.15);position:sticky;top:0;z-index:100; }
+.brand { display:flex;align-items:center;gap:12px; }
+.brand-icon { width:38px;height:38px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center; }
+.brand-icon svg { fill:var(--primary);width:22px;height:22px; }
+.brand-text { color:#fff;font-size:1.15rem;letter-spacing:.5px; }
+.brand-sub { color:rgba(255,255,255,.6);font-family:'DM Sans',sans-serif;font-size:.7rem;font-weight:400; }
+.nav-links { display:flex;align-items:center;gap:4px; }
+.nav-link { padding:8px 14px;color:rgba(255,255,255,.75);font-size:.875rem;font-weight:500;border-radius:8px;cursor:pointer;transition:all .2s;white-space:nowrap; }
+.nav-link:hover,.nav-link.active { color:#fff;background:rgba(255,255,255,.12); }
+.nav-link i { margin-right:6px; }
+.nav-right { display:flex;align-items:center;gap:12px; }
+.theme-btn { background:rgba(255,255,255,.12);border:none;color:#fff;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:.8rem;transition:all .2s; }
+.theme-btn:hover { background:rgba(255,255,255,.2); }
+.user-pill { background:rgba(255,255,255,.12);border-radius:20px;padding:6px 14px;color:#fff;font-size:.82rem;display:flex;align-items:center;gap:8px; }
+.user-avatar { width:28px;height:28px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:var(--primary); }
+.logout-btn { background:none;border:1.5px solid rgba(255,255,255,.3);color:rgba(255,255,255,.8);padding:5px 12px;border-radius:8px;cursor:pointer;font-size:.8rem;transition:all .2s; }
+.logout-btn:hover { background:rgba(255,255,255,.1);border-color:#fff;color:#fff; }
+.hamburger { display:none;background:none;border:none;color:#fff;font-size:1.4rem;cursor:pointer; }
+
+/* ===================== MAIN CONTENT ===================== */
+.main-content { padding:28px 24px;max-width:1600px;margin:0 auto; }
+.page { display:none; }
+.page.active { display:block; }
+.page-header { margin-bottom:28px; }
+.page-title { font-size:1.8rem;color:var(--primary);margin-bottom:4px; }
+.page-sub { color:var(--text3);font-size:.9rem; }
+
+/* ===================== STAT CARDS ===================== */
+.stats-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-bottom:28px; }
+.stat-card { background:var(--card-bg);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);border:1px solid var(--border);cursor:pointer;transition:all .25s;position:relative;overflow:hidden; }
+.stat-card::after { content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--accent)); }
+.stat-card:hover { transform:translateY(-4px);box-shadow:var(--shadow-lg); }
+.stat-icon { width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:14px; }
+.stat-label { font-size:.8rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px; }
+.stat-value { font-size:2rem;font-weight:700;color:var(--text);font-family:'Playfair Display',serif;line-height:1; }
+.stat-change { font-size:.8rem;margin-top:6px;display:flex;align-items:center;gap:4px; }
+.stat-change.up { color:var(--success); }
+.stat-change.down { color:var(--danger); }
+.stat-card.danger { border-color:var(--danger); }
+.stat-card.danger::after { background:var(--danger); }
+.stat-card.warning { border-color:var(--warning); }
+.stat-card.warning::after { background:var(--warning); }
+.stat-card.success { border-color:var(--success); }
+.stat-card.success::after { background:var(--success); }
+
+/* ===================== CHARTS ===================== */
+.charts-grid { display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:28px; }
+.chart-card { background:var(--card-bg);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);border:1px solid var(--border); }
+.chart-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:20px; }
+.chart-title { font-size:1rem;font-weight:700;color:var(--text); }
+.chart-actions { display:flex;gap:8px; }
+.chart-btn { padding:5px 12px;border:1.5px solid var(--border);background:none;color:var(--text2);border-radius:6px;font-size:.78rem;cursor:pointer;transition:all .2s; }
+.chart-btn:hover,.chart-btn.active { background:var(--primary);color:#fff;border-color:var(--primary); }
+canvas { max-height:320px; }
+
+/* ===================== DATA TABLE ===================== */
+.table-card { background:var(--card-bg);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);overflow:hidden; }
+.table-header { padding:20px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;border-bottom:1px solid var(--border); }
+.table-title { font-size:1rem;font-weight:700;color:var(--text); }
+.table-controls { display:flex;align-items:center;gap:10px;flex-wrap:wrap; }
+.search-box { padding:8px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:.875rem;background:var(--bg);color:var(--text);width:220px; }
+.search-box:focus { outline:none;border-color:var(--primary-light); }
+.btn-primary { padding:8px 18px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:.875rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .2s; }
+.btn-primary:hover { background:var(--primary-light); }
+.btn-secondary { padding:8px 18px;background:var(--bg3);color:var(--text);border:1.5px solid var(--border);border-radius:8px;font-size:.875rem;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .2s; }
+.btn-secondary:hover { background:var(--border); }
+.btn-success { padding:8px 18px;background:var(--success);color:#fff;border:none;border-radius:8px;font-size:.875rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .2s; }
+.btn-danger-sm { padding:5px 10px;background:transparent;color:var(--danger);border:1.5px solid var(--danger);border-radius:6px;font-size:.78rem;cursor:pointer;transition:all .2s; }
+.btn-danger-sm:hover { background:var(--danger);color:#fff; }
+.btn-edit-sm { padding:5px 10px;background:transparent;color:var(--primary-light);border:1.5px solid var(--primary-light);border-radius:6px;font-size:.78rem;cursor:pointer;transition:all .2s; }
+.btn-edit-sm:hover { background:var(--primary-light);color:#fff; }
+.table-responsive { overflow-x:auto; }
+table.emms-table { width:100%;border-collapse:collapse; }
+.emms-table th { padding:12px 16px;text-align:left;font-size:.78rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;background:var(--bg3);border-bottom:2px solid var(--border); }
+.emms-table td { padding:12px 16px;font-size:.875rem;color:var(--text);border-bottom:1px solid var(--border); }
+.emms-table tr:hover td { background:var(--bg3); }
+.emms-table tr:last-child td { border-bottom:none; }
+.badge-active { background:#dcfce7;color:#166534;padding:3px 10px;border-radius:99px;font-size:.75rem;font-weight:600; }
+.badge-inactive { background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:99px;font-size:.75rem;font-weight:600; }
+.badge-anomaly { background:#fef3c7;color:#92400e;padding:3px 10px;border-radius:99px;font-size:.75rem;font-weight:600; }
+.badge-high { background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:99px;font-size:.75rem;font-weight:600; }
+.badge-low { background:#fef3c7;color:#92400e;padding:3px 10px;border-radius:99px;font-size:.75rem;font-weight:600; }
+.table-footer { padding:14px 24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:.82rem;color:var(--text3); }
+
+/* ===================== MODAL ===================== */
+.modal-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:800;align-items:center;justify-content:center;padding:20px; }
+.modal-overlay.open { display:flex; }
+.modal-box { background:var(--card-bg);border-radius:16px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg); }
+.modal-head { padding:24px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between; }
+.modal-title { font-size:1.1rem;font-weight:700;color:var(--text); }
+.modal-close { background:none;border:none;font-size:1.3rem;color:var(--text3);cursor:pointer;padding:4px; }
+.modal-body { padding:24px 28px; }
+.modal-foot { padding:20px 28px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:12px; }
+.form-group { margin-bottom:18px; }
+label.form-label { display:block;font-size:.82rem;font-weight:600;color:var(--text2);margin-bottom:6px; }
+input.form-control, select.form-control, textarea.form-control { width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;color:var(--text);background:var(--bg);transition:border-color .2s; }
+input.form-control:focus, select.form-control:focus, textarea.form-control:focus { outline:none;border-color:var(--primary-light); }
+.form-row { display:grid;grid-template-columns:1fr 1fr;gap:16px; }
+
+/* ===================== ALERT BADGES ===================== */
+.anomaly-row td { background:rgba(220,53,69,.05) !important; }
+.inactive-consuming td { background:rgba(255,193,7,.08) !important; }
+
+/* ===================== REPORT FILTERS ===================== */
+.report-filters { background:var(--card-bg);border-radius:var(--radius);padding:20px 24px;margin-bottom:20px;box-shadow:var(--shadow);border:1px solid var(--border); }
+.filter-row { display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap; }
+.filter-group { display:flex;flex-direction:column;gap:6px;min-width:160px; }
+.filter-label { font-size:.78rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px; }
+.filter-select { padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.875rem;background:var(--bg);color:var(--text);cursor:pointer; }
+.filter-select:focus { outline:none;border-color:var(--primary-light); }
+
+/* ===================== SETTINGS ===================== */
+.settings-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:20px; }
+.settings-section { background:var(--card-bg);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);border:1px solid var(--border); }
+.settings-section-title { font-size:1rem;font-weight:700;color:var(--primary);margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid var(--border); }
+
+/* ===================== ANOMALY HIGHLIGHT ===================== */
+.anomaly-alert-card { background:linear-gradient(135deg,rgba(220,53,69,.08),rgba(255,193,7,.08));border:1.5px solid var(--danger);border-radius:var(--radius);padding:20px;margin-bottom:20px; }
+.inactive-alert-card { background:linear-gradient(135deg,rgba(255,193,7,.1),rgba(255,150,0,.1));border:1.5px solid var(--warning);border-radius:var(--radius);padding:20px;margin-bottom:20px; }
+
+/* ===================== THEME PICKER ===================== */
+.theme-picker { position:absolute;top:68px;right:20px;background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:var(--shadow-lg);z-index:200;display:none;min-width:220px; }
+.theme-picker.open { display:block; }
+.theme-picker-title { font-size:.8rem;font-weight:700;color:var(--text3);margin-bottom:12px;text-transform:uppercase;letter-spacing:.8px; }
+.theme-option { display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;cursor:pointer;transition:all .2s; }
+.theme-option:hover { background:var(--bg3); }
+.theme-swatch { width:20px;height:20px;border-radius:50%;border:2px solid rgba(0,0,0,.1); }
+.theme-option-name { font-size:.875rem;color:var(--text);font-weight:500; }
+
+/* ===================== RESPONSIVE ===================== */
+@media (max-width:1024px) { .charts-grid { grid-template-columns:1fr; } }
+@media (max-width:768px) {
+  .navbar-emms { padding:0 16px; }
+  .nav-links { display:none; }
+  .hamburger { display:block; }
+  .main-content { padding:16px; }
+  .stats-grid { grid-template-columns:repeat(2,1fr); }
+  .form-row { grid-template-columns:1fr; }
+  .brand-text { font-size:.95rem; }
+  .mobile-nav { display:flex !important; }
+}
+.mobile-nav { display:none;position:fixed;top:64px;left:0;right:0;background:var(--nav-bg);flex-direction:column;padding:12px;gap:4px;z-index:99;box-shadow:0 8px 16px rgba(0,0,0,.2); }
+.mobile-nav .nav-link { display:block;padding:12px 16px; }
+
+/* ===================== MASTER METER BADGE ===================== */
+.master-badge { background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;border-radius:8px;padding:16px 20px;display:flex;align-items:center;gap:12px;margin-bottom:20px; }
+.master-badge-icon { font-size:1.8rem; }
+.master-badge-info { flex:1; }
+.master-badge-label { font-size:.8rem;opacity:.8; }
+.master-badge-value { font-size:1.6rem;font-family:'Playfair Display',serif;font-weight:700; }
+.gold-bar { height:4px;background:linear-gradient(90deg,var(--accent),var(--accent-light));border-radius:99px;margin-bottom:28px; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width:6px;height:6px; }
+::-webkit-scrollbar-track { background:var(--bg3); }
+::-webkit-scrollbar-thumb { background:var(--border);border-radius:99px; }
+::-webkit-scrollbar-thumb:hover { background:var(--text3); }
+
+/* Pagination */
+.pagination-wrap { display:flex;align-items:center;gap:8px; }
+.page-btn { padding:5px 10px;border:1.5px solid var(--border);background:var(--bg);color:var(--text2);border-radius:6px;cursor:pointer;font-size:.8rem;transition:all .2s; }
+.page-btn.active,.page-btn:hover { background:var(--primary);color:#fff;border-color:var(--primary); }
+
+.empty-state { text-align:center;padding:60px 20px;color:var(--text3); }
+.empty-state i { font-size:3rem;margin-bottom:16px;display:block; }
+
+/* Welcome banner */
+.welcome-banner { background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 100%);border-radius:var(--radius);padding:28px 32px;margin-bottom:28px;color:#fff;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px; }
+.welcome-title { font-size:1.5rem;font-weight:700;font-family:'Playfair Display',serif; }
+.welcome-sub { font-size:.9rem;opacity:.8;margin-top:4px; }
+.welcome-stats { display:flex;gap:24px; }
+.w-stat { text-align:center; }
+.w-stat-val { font-size:1.8rem;font-family:'Playfair Display',serif;font-weight:700;color:var(--accent-light); }
+.w-stat-label { font-size:.72rem;opacity:.7;text-transform:uppercase;letter-spacing:.8px; }
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="app-loader">
+  <svg class="loader-bolt" viewBox="0 0 24 24"><path d="M13 2L4.5 13.5H11L10 22L19.5 10.5H13L13 2Z"/></svg>
+  <div class="loader-text">EMMS · Bally Jute Mill</div>
+  <div class="loader-bar"><div class="loader-progress"></div></div>
+</div>
+
+<!-- LOGIN -->
+<div id="login-screen" style="display:flex;">
+  <div class="login-card">
+    <div class="login-logo">
+      <svg viewBox="0 0 24 24"><path d="M13 2L4.5 13.5H11L10 22L19.5 10.5H13L13 2Z"/></svg>
+    </div>
+    <h2 class="login-title">Bally Jute Mill</h2>
+    <p class="login-sub">Electric Meter Monitoring System</p>
+    <div class="form-group">
+      <label class="form-label">Username</label>
+      <input type="text" id="login-username" class="login-input" placeholder="Enter username">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input type="password" id="login-password" class="login-input" placeholder="Enter password">
+    </div>
+    <button class="login-btn" onclick="doLogin()"><i class="bi bi-lightning-fill me-2"></i>Sign In</button>
+    <div style="text-align:center;margin-top:16px;font-size:.78rem;color:#718096;">
+      admin / Admin@1234 &nbsp;|&nbsp; superadmin / Superadmin@1234 &nbsp;|&nbsp; user1 / User@1234
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="main-app">
+
+  <!-- NAVBAR -->
+  <nav class="navbar-emms">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24"><path d="M13 2L4.5 13.5H11L10 22L19.5 10.5H13L13 2Z"/></svg>
+      </div>
+      <div>
+        <div class="brand-text">EMMS</div>
+        <div class="brand-sub">Bally Jute Mill</div>
+      </div>
+    </div>
+
+    <div class="nav-links" id="nav-links">
+      <div class="nav-link active" data-page="dashboard"><i class="bi bi-grid-fill"></i>Dashboard</div>
+      <div class="nav-link" data-page="readings"><i class="bi bi-lightning-charge"></i>Readings</div>
+      <div class="nav-link" data-page="meters"><i class="bi bi-speedometer2"></i>Meters</div>
+      <div class="nav-link" data-page="workers"><i class="bi bi-people-fill"></i>Workers</div>
+      <div class="nav-link" data-page="anomalies"><i class="bi bi-exclamation-triangle-fill"></i>Anomalies</div>
+      <div class="nav-link" data-page="reports"><i class="bi bi-file-earmark-bar-graph-fill"></i>Reports</div>
+      <div class="nav-link" id="nav-users" data-page="users"><i class="bi bi-shield-person-fill"></i>Users</div>
+      <div class="nav-link" data-page="settings"><i class="bi bi-gear-fill"></i>Settings</div>
+    </div>
+
+    <div class="nav-right">
+      <button class="theme-btn" onclick="toggleThemePicker()"><i class="bi bi-palette-fill"></i> Theme</button>
+      <div class="user-pill">
+        <div class="user-avatar" id="user-avatar">A</div>
+        <span id="nav-username">Admin</span>
+        <span id="nav-role-badge" style="font-size:.7rem;background:rgba(255,255,255,.15);padding:2px 7px;border-radius:99px;"></span>
+      </div>
+      <button class="logout-btn" onclick="doLogout()"><i class="bi bi-box-arrow-right"></i> Logout</button>
+      <button class="hamburger" onclick="toggleMobileNav()"><i class="bi bi-list"></i></button>
+    </div>
+  </nav>
+
+  <!-- MOBILE NAV -->
+  <div class="mobile-nav" id="mobile-nav"></div>
+
+  <!-- THEME PICKER -->
+  <div class="theme-picker" id="theme-picker">
+    <div class="theme-picker-title">Choose Theme</div>
+    <div class="theme-option" onclick="setTheme('')"><div class="theme-swatch" style="background:#1a3a6b;"></div><span class="theme-option-name">Royal Navy (Default)</span></div>
+    <div class="theme-option" onclick="setTheme('dark-blue')"><div class="theme-swatch" style="background:#0d2137;"></div><span class="theme-option-name">Dark Blue</span></div>
+    <div class="theme-option" onclick="setTheme('emerald')"><div class="theme-swatch" style="background:#064e3b;"></div><span class="theme-option-name">Emerald Green</span></div>
+    <div class="theme-option" onclick="setTheme('royal-purple')"><div class="theme-swatch" style="background:#3b0764;"></div><span class="theme-option-name">Royal Purple</span></div>
+    <div class="theme-option" onclick="setTheme('crimson')"><div class="theme-swatch" style="background:#7f1d1d;"></div><span class="theme-option-name">Deep Crimson</span></div>
+    <div class="theme-option" onclick="setTheme('slate')"><div class="theme-swatch" style="background:#1e293b;"></div><span class="theme-option-name">Steel Slate</span></div>
+    <div class="theme-option" onclick="setTheme('midnight')"><div class="theme-swatch" style="background:#111827;"></div><span class="theme-option-name">Midnight Black</span></div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <div class="gold-bar"></div>
+
+    <!-- ===== DASHBOARD ===== -->
+    <div class="page active" id="page-dashboard">
+      <div class="welcome-banner">
+        <div>
+          <div class="welcome-title">Electric Meter Monitoring System</div>
+          <div class="welcome-sub" id="welcome-date">Bally Jute Mill — Real-time Consumption Intelligence</div>
+        </div>
+        <div class="welcome-stats" id="welcome-stats">
+          <div class="w-stat"><div class="w-stat-val" id="ws-meters">—</div><div class="w-stat-label">Active Meters</div></div>
+          <div class="w-stat"><div class="w-stat-val" id="ws-workers">—</div><div class="w-stat-label">Workers</div></div>
+          <div class="w-stat"><div class="w-stat-val" id="ws-anomalies">—</div><div class="w-stat-label">Anomalies</div></div>
+        </div>
+      </div>
+
+      <div class="stats-grid" id="dash-stats"></div>
+
+      <!-- Inactive consuming alert -->
+      <div id="inactive-alert" style="display:none;" class="inactive-alert-card">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+          <i class="bi bi-exclamation-triangle-fill" style="font-size:1.4rem;color:var(--warning);"></i>
+          <div>
+            <div style="font-weight:700;color:var(--text);">⚠️ Inactive Workers With Active Consumption</div>
+            <div style="font-size:.82rem;color:var(--text3);">These workers have left/inactive but electricity consumption is continuing</div>
+          </div>
+        </div>
+        <div id="inactive-list"></div>
+      </div>
+
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title">📈 Monthly Consumption Trend</div>
+            <div class="chart-actions">
+              <button class="chart-btn active" onclick="switchChart('bar',this)">Bar</button>
+              <button class="chart-btn" onclick="switchChart('line',this)">Line</button>
+              <button class="chart-btn" onclick="downloadChartData()">⬇ CSV</button>
+            </div>
+          </div>
+          <canvas id="chart-monthly"></canvas>
+        </div>
+        <div class="chart-card" style="cursor:pointer;" onclick="showPage('anomalies')">
+          <div class="chart-header">
+            <div class="chart-title">🏭 Dept-wise Consumption</div>
+            <button class="chart-btn" onclick="event.stopPropagation();downloadChartDataDept()">⬇ CSV</button>
+          </div>
+          <canvas id="chart-dept"></canvas>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title">🔝 Top 10 Consumers (This Month)</div>
+            <button class="chart-btn" onclick="downloadTopConsumers()">⬇ CSV</button>
+          </div>
+          <canvas id="chart-top"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title">⚡ Anomaly Distribution</div>
+          </div>
+          <canvas id="chart-anomaly"></canvas>
+        </div>
+      </div>
+
+      <!-- Monthly Detail Cards -->
+      <div class="table-card" style="margin-bottom:20px;">
+        <div class="table-header">
+          <div class="table-title">📅 Year-wise Monthly Consumption</div>
+          <div class="table-controls">
+            <select class="filter-select" id="dash-year-filter" onchange="loadYearConsumption()"></select>
+            <button class="btn-primary" onclick="downloadMonthlyReport()"><i class="bi bi-download"></i> CSV</button>
+          </div>
+        </div>
+        <div class="table-responsive"><table class="emms-table" id="monthly-table"><thead><tr><th>Month</th><th>Total Units</th><th>Readings</th><th>Avg/Meter</th><th>Action</th></tr></thead><tbody id="monthly-tbody"></tbody></table></div>
+      </div>
+
+      <!-- Recent Readings -->
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">Recent Readings</div>
+          <button class="btn-primary" onclick="showPage('readings')">View All <i class="bi bi-arrow-right"></i></button>
+        </div>
+        <div class="table-responsive"><table class="emms-table"><thead><tr><th>Meter #</th><th>Worker</th><th>Consumption</th><th>Month/Year</th><th>Status</th></tr></thead><tbody id="recent-tbody"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- ===== READINGS ===== -->
+    <div class="page" id="page-readings">
+      <div class="page-header">
+        <div class="page-title">⚡ Meter Readings</div>
+        <div class="page-sub">Record and manage electricity meter readings</div>
+      </div>
+      <!-- Master Meter -->
+      <div class="master-badge">
+        <div class="master-badge-icon">🏭</div>
+        <div class="master-badge-info">
+          <div class="master-badge-label">MASTER METER — Total Mill Consumption</div>
+          <div class="master-badge-value" id="master-total">Loading...</div>
+        </div>
+        <button class="btn-primary" onclick="openMasterReadingModal()">+ Add Master Reading</button>
+      </div>
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">Sub-Meter Readings</div>
+          <div class="table-controls">
+            <input type="text" class="search-box" id="readings-search" placeholder="Search meter/worker..." oninput="filterReadings()">
+            <select class="filter-select" id="readings-month-filter" onchange="filterReadings()"></select>
+            <select class="filter-select" id="readings-year-filter" onchange="filterReadings()"></select>
+            <button class="btn-primary" id="add-reading-btn" onclick="openReadingModal()"><i class="bi bi-plus-lg"></i> Add Reading</button>
+            <button class="btn-success" onclick="downloadReadingsCSV()"><i class="bi bi-download"></i> CSV</button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="emms-table">
+            <thead><tr><th>Meter #</th><th>Worker</th><th>Reading Date</th><th>Prev.</th><th>Current</th><th>Units</th><th>Month/Yr</th><th>Anomaly</th><th id="readings-action-th">Actions</th></tr></thead>
+            <tbody id="readings-tbody"></tbody>
+          </table>
+        </div>
+        <div class="table-footer"><span id="readings-count">0 records</span><div class="pagination-wrap" id="readings-pagination"></div></div>
+      </div>
+    </div>
+
+    <!-- ===== METERS ===== -->
+    <div class="page" id="page-meters">
+      <div class="page-header">
+        <div class="page-title">🔌 Meter Management</div>
+        <div class="page-sub">500 Sub-meters under Master Meter — Allocation & Status</div>
+      </div>
+      <div class="stats-grid" id="meter-stats"></div>
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">All Meters</div>
+          <div class="table-controls">
+            <input type="text" class="search-box" id="meters-search" placeholder="Search meter/worker..." oninput="filterMeters()">
+            <select class="filter-select" id="meters-status-filter" onchange="filterMeters()">
+              <option value="">All Status</option><option value="active">Active</option><option value="inactive">Inactive</option>
+            </select>
+            <button class="btn-primary" id="add-meter-btn" onclick="openMeterModal()"><i class="bi bi-plus-lg"></i> Add Meter</button>
+            <button class="btn-success" onclick="downloadMetersCSV()"><i class="bi bi-download"></i> CSV</button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="emms-table">
+            <thead><tr><th>Meter #</th><th>Worker</th><th>Location</th><th>Phase</th><th>Max Load</th><th>Install Date</th><th>Status</th><th id="meters-action-th">Actions</th></tr></thead>
+            <tbody id="meters-tbody"></tbody>
+          </table>
+        </div>
+        <div class="table-footer"><span id="meters-count">0 records</span></div>
+      </div>
+    </div>
+
+    <!-- ===== WORKERS ===== -->
+    <div class="page" id="page-workers">
+      <div class="page-header">
+        <div class="page-title">👷 Worker Management</div>
+        <div class="page-sub">Employee records and meter allocation</div>
+      </div>
+      <div class="stats-grid" id="worker-stats"></div>
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">All Workers</div>
+          <div class="table-controls">
+            <input type="text" class="search-box" id="workers-search" placeholder="Search name/dept..." oninput="filterWorkers()">
+            <select class="filter-select" id="workers-dept-filter" onchange="filterWorkers()"><option value="">All Departments</option></select>
+            <select class="filter-select" id="workers-status-filter" onchange="filterWorkers()"><option value="">All Status</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
+            <button class="btn-primary" id="add-worker-btn" onclick="openWorkerModal()"><i class="bi bi-plus-lg"></i> Add Worker</button>
+            <button class="btn-success" onclick="downloadWorkersCSV()"><i class="bi bi-download"></i> CSV</button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="emms-table">
+            <thead><tr><th>Emp Code</th><th>Name</th><th>Department</th><th>Designation</th><th>Meter #</th><th>Joining Date</th><th>Status</th><th id="workers-action-th">Actions</th></tr></thead>
+            <tbody id="workers-tbody"></tbody>
+          </table>
+        </div>
+        <div class="table-footer"><span id="workers-count">0 records</span></div>
+      </div>
+    </div>
+
+    <!-- ===== ANOMALIES ===== -->
+    <div class="page" id="page-anomalies">
+      <div class="page-header">
+        <div class="page-title">⚠️ Anomaly Detection</div>
+        <div class="page-sub">Auto-detected abnormal consumption patterns</div>
+      </div>
+      <div class="stats-grid" id="anomaly-stats"></div>
+      <div class="anomaly-alert-card" id="anomaly-summary-card">
+        <div style="font-weight:700;margin-bottom:8px;color:var(--text);">🔴 Open Anomalies Require Attention</div>
+        <div id="anomaly-summary-text" style="font-size:.875rem;color:var(--text2);"></div>
+      </div>
+      <!-- Inactive consumers -->
+      <div class="inactive-alert-card">
+        <div style="font-weight:700;margin-bottom:12px;color:var(--text);">👤 Inactive Workers Still Consuming Power</div>
+        <div class="table-responsive">
+          <table class="emms-table">
+            <thead><tr><th>Worker</th><th>Meter #</th><th>Month</th><th>Consumption</th><th>Dept</th><th>Alert</th></tr></thead>
+            <tbody id="inactive-consuming-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">All Anomalies</div>
+          <div class="table-controls">
+            <select class="filter-select" id="anomaly-type-filter" onchange="filterAnomalies()">
+              <option value="">All Types</option><option value="HIGH">High</option><option value="LOW">Low</option>
+            </select>
+            <select class="filter-select" id="anomaly-year-filter" onchange="filterAnomalies()"></select>
+            <button class="btn-success" onclick="downloadAnomaliesCSV()"><i class="bi bi-download"></i> CSV</button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="emms-table">
+            <thead><tr><th>Meter #</th><th>Worker</th><th>Month/Year</th><th>Consumption</th><th>Average</th><th>Deviation</th><th>Type</th><th>Status</th><th>Alert</th></tr></thead>
+            <tbody id="anomalies-tbody"></tbody>
+          </table>
+        </div>
+        <div class="table-footer"><span id="anomalies-count">0 records</span></div>
+      </div>
+    </div>
+
+    <!-- ===== REPORTS ===== -->
+    <div class="page" id="page-reports">
+      <div class="page-header">
+        <div class="page-title">📊 Reports & Analytics</div>
+        <div class="page-sub">Comprehensive consumption reports with export</div>
+      </div>
+      <div class="report-filters">
+        <div class="filter-row">
+          <div class="filter-group">
+            <div class="filter-label">Report Type</div>
+            <select class="filter-select" id="report-type" onchange="onReportTypeChange()">
+              <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly</option>
+              <option value="quarterly">Quarterly</option>
+              <option value="half_yearly">Half Yearly</option>
+              <option value="weekly">Weekly</option>
+              <option value="daily">Daily</option>
+              <option value="meter_wise">Meter Wise</option>
+              <option value="worker_wise">Worker Wise</option>
+              <option value="anomalies">Anomalies</option>
+              <option value="inactive_consuming">Inactive Consuming</option>
+              <option value="department_wise">Department Wise</option>
+            </select>
+          </div>
+          <div class="filter-group" id="rf-month-group">
+            <div class="filter-label">Month</div>
+            <select class="filter-select" id="rf-month"></select>
+          </div>
+          <div class="filter-group" id="rf-year-group">
+            <div class="filter-label">Year</div>
+            <select class="filter-select" id="rf-year"></select>
+          </div>
+          <div class="filter-group" id="rf-quarter-group" style="display:none;">
+            <div class="filter-label">Quarter</div>
+            <select class="filter-select" id="rf-quarter"><option value="1">Q1 (Jan-Mar)</option><option value="2">Q2 (Apr-Jun)</option><option value="3">Q3 (Jul-Sep)</option><option value="4">Q4 (Oct-Dec)</option></select>
+          </div>
+          <div class="filter-group" id="rf-half-group" style="display:none;">
+            <div class="filter-label">Half</div>
+            <select class="filter-select" id="rf-half"><option value="1">H1 (Jan-Jun)</option><option value="2">H2 (Jul-Dec)</option></select>
+          </div>
+          <div class="filter-group" id="rf-week-group" style="display:none;">
+            <div class="filter-label">Week Start Date</div>
+            <input type="date" class="filter-select" id="rf-week">
+          </div>
+          <div class="filter-group" id="rf-date-group" style="display:none;">
+            <div class="filter-label">Date</div>
+            <input type="date" class="filter-select" id="rf-date">
+          </div>
+          <div class="filter-group" id="rf-meter-group" style="display:none;">
+            <div class="filter-label">Meter Number</div>
+            <select class="filter-select" id="rf-meter"></select>
+          </div>
+          <div class="filter-group" id="rf-worker-group" style="display:none;">
+            <div class="filter-label">Worker</div>
+            <select class="filter-select" id="rf-worker"></select>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:8px;">
+            <button class="btn-primary" onclick="generateReport()"><i class="bi bi-play-fill"></i> Generate</button>
+            <button class="btn-success" onclick="downloadReportCSV()"><i class="bi bi-download"></i> CSV</button>
+          </div>
+        </div>
+      </div>
+      <div class="chart-card" style="margin-bottom:20px;" id="report-chart-card">
+        <div class="chart-header"><div class="chart-title" id="report-chart-title">Report Chart</div></div>
+        <canvas id="chart-report" style="max-height:280px;"></canvas>
+      </div>
+      <div class="table-card">
+        <div class="table-header"><div class="table-title" id="report-table-title">Report Data</div><span id="report-count" style="font-size:.82rem;color:var(--text3);"></span></div>
+        <div class="table-responsive"><table class="emms-table" id="report-table"><thead><tr id="report-thead-row"></tr></thead><tbody id="report-tbody"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- ===== USERS ===== -->
+    <div class="page" id="page-users">
+      <div class="page-header">
+        <div class="page-title">🛡️ User Management</div>
+        <div class="page-sub">System users and access control</div>
+      </div>
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">System Users</div>
+          <div class="table-controls">
+            <input type="text" class="search-box" id="users-search" placeholder="Search users..." oninput="filterUsers()">
+            <button class="btn-primary" onclick="openUserModal()"><i class="bi bi-plus-lg"></i> Add User</button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="emms-table">
+            <thead><tr><th>Username</th><th>Full Name</th><th>Role</th><th>Email</th><th>Status</th><th>Last Login</th><th>Actions</th></tr></thead>
+            <tbody id="users-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SETTINGS ===== -->
+    <div class="page" id="page-settings">
+      <div class="page-header">
+        <div class="page-title">⚙️ System Settings</div>
+        <div class="page-sub">Alert configuration, email setup, thresholds</div>
+      </div>
+      <div class="settings-grid">
+        <div class="settings-section">
+          <div class="settings-section-title">📧 Email Alert Configuration</div>
+          <div class="form-group"><label class="form-label">Source Email (Gmail/SMTP)</label><input type="email" class="form-control" id="s-source-email" placeholder="alerts@ballyjutemill.com"></div>
+          <div class="form-group"><label class="form-label">Supervisor Emails (comma-separated)</label><textarea class="form-control" id="s-supervisor-emails" rows="3" placeholder="supervisor1@mail.com, manager@mail.com"></textarea></div>
+          <div class="form-group"><label class="form-label">WhatsApp Alert Number</label><input type="text" class="form-control" id="s-whatsapp" placeholder="+91 9000000000"></div>
+        </div>
+        <div class="settings-section">
+          <div class="settings-section-title">🚨 Anomaly Detection Thresholds</div>
+          <div class="form-group"><label class="form-label">High Consumption Threshold (%)</label><input type="number" class="form-control" id="s-high-threshold" placeholder="150" value="150"></div>
+          <div class="form-group"><label class="form-label">Low Consumption Threshold (%)</label><input type="number" class="form-control" id="s-low-threshold" placeholder="20" value="20"></div>
+          <div class="form-group"><label class="form-label">Company Name</label><input type="text" class="form-control" id="s-company" placeholder="Bally Jute Mill"></div>
+        </div>
+        <div class="settings-section">
+          <div class="settings-section-title">📨 EmailJS Configuration (Client-side Email)</div>
+          <div class="form-group"><label class="form-label">EmailJS Service ID</label><input type="text" class="form-control" id="s-emailjs-service" placeholder="service_xxx"></div>
+          <div class="form-group"><label class="form-label">EmailJS Template ID</label><input type="text" class="form-control" id="s-emailjs-template" placeholder="template_xxx"></div>
+          <div class="form-group"><label class="form-label">EmailJS Public Key</label><input type="text" class="form-control" id="s-emailjs-key" placeholder="public_key_xxx"></div>
+        </div>
+        <div class="settings-section">
+          <div class="settings-section-title">📋 Alert Log</div>
+          <div id="alert-log-list"></div>
+          <button class="btn-secondary" style="margin-top:12px;" onclick="loadAlertLog()"><i class="bi bi-arrow-clockwise"></i> Refresh Log</button>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:24px;">
+        <button class="btn-primary" style="padding:12px 40px;" onclick="saveSettings()"><i class="bi bi-check-circle-fill"></i> Save All Settings</button>
+        <button class="btn-secondary" style="padding:12px 24px;margin-left:12px;" onclick="sendTestAlert()"><i class="bi bi-send-fill"></i> Send Test Alert</button>
+      </div>
+    </div>
+
+  </div><!-- /main-content -->
+</div><!-- /main-app -->
+
+<!-- ===== MODALS ===== -->
+
+<!-- Reading Modal -->
+<div class="modal-overlay" id="reading-modal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="modal-title" id="reading-modal-title">Add Meter Reading</div>
+      <button class="modal-close" onclick="closeModal('reading-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="rm-id">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Select Meter *</label>
+          <select class="form-control" id="rm-meter" onchange="onMeterSelect(this)">
+            <option value="">Select Meter...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Worker Name</label>
+          <input type="text" class="form-control" id="rm-worker" readonly>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Reading Date *</label>
+          <input type="date" class="form-control" id="rm-date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Previous Reading</label>
+          <input type="number" class="form-control" id="rm-prev" readonly>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Current Reading *</label>
+          <input type="number" class="form-control" id="rm-current" oninput="calcConsumption()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Consumption (Units)</label>
+          <input type="number" class="form-control" id="rm-consumption" readonly>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-secondary" onclick="closeModal('reading-modal')">Cancel</button>
+      <button class="btn-primary" onclick="saveReading()"><i class="bi bi-check-lg"></i> Save Reading</button>
+    </div>
+  </div>
+</div>
+
+<!-- Master Reading Modal -->
+<div class="modal-overlay" id="master-modal">
+  <div class="modal-box" style="max-width:480px;">
+    <div class="modal-head"><div class="modal-title">Add Master Meter Reading</div><button class="modal-close" onclick="closeModal('master-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Reading Date *</label><input type="date" class="form-control" id="mm-date"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Previous Reading</label><input type="number" class="form-control" id="mm-prev"></div>
+        <div class="form-group"><label class="form-label">Current Reading *</label><input type="number" class="form-control" id="mm-current"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Remarks</label><textarea class="form-control" id="mm-remarks" rows="2"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-secondary" onclick="closeModal('master-modal')">Cancel</button>
+      <button class="btn-primary" onclick="saveMasterReading()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Meter Modal -->
+<div class="modal-overlay" id="meter-modal">
+  <div class="modal-box">
+    <div class="modal-head"><div class="modal-title" id="meter-modal-title">Add Meter</div><button class="modal-close" onclick="closeModal('meter-modal')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="mm2-id">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Meter Number *</label><input type="text" class="form-control" id="mm2-number" placeholder="MTR0001"></div>
+        <div class="form-group"><label class="form-label">Location</label><input type="text" class="form-control" id="mm2-location" placeholder="Block A - Weaving"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Assigned Worker</label><select class="form-control" id="mm2-worker"><option value="">Select Worker...</option></select></div>
+        <div class="form-group"><label class="form-label">Phase</label><select class="form-control" id="mm2-phase"><option>1-Phase</option><option>3-Phase</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Max Load (kW)</label><input type="number" class="form-control" id="mm2-load"></div>
+        <div class="form-group"><label class="form-label">Install Date</label><input type="date" class="form-control" id="mm2-install"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Status</label><select class="form-control" id="mm2-status"><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
+        <div class="form-group"><label class="form-label">Remarks</label><input type="text" class="form-control" id="mm2-remarks"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-secondary" onclick="closeModal('meter-modal')">Cancel</button>
+      <button class="btn-primary" onclick="saveMeter()">Save Meter</button>
+    </div>
+  </div>
+</div>
+
+<!-- Worker Modal -->
+<div class="modal-overlay" id="worker-modal">
+  <div class="modal-box">
+    <div class="modal-head"><div class="modal-title" id="worker-modal-title">Add Worker</div><button class="modal-close" onclick="closeModal('worker-modal')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="wm-id">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Employee Code</label><input type="text" class="form-control" id="wm-code" placeholder="EMP1001"></div>
+        <div class="form-group"><label class="form-label">Full Name *</label><input type="text" class="form-control" id="wm-name"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Department</label><select class="form-control" id="wm-dept"><option>Weaving</option><option>Spinning</option><option>Processing</option><option>Finishing</option><option>Maintenance</option><option>Administration</option></select></div>
+        <div class="form-group"><label class="form-label">Designation</label><input type="text" class="form-control" id="wm-designation"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Phone</label><input type="text" class="form-control" id="wm-phone"></div>
+        <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-control" id="wm-email"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Joining Date</label><input type="date" class="form-control" id="wm-join"></div>
+        <div class="form-group"><label class="form-label">Meter Number</label><input type="text" class="form-control" id="wm-meter" placeholder="MTR0001"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Status</label><select class="form-control" id="wm-status"><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
+        <div class="form-group"><label class="form-label">Address / Quarter</label><input type="text" class="form-control" id="wm-address"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-secondary" onclick="closeModal('worker-modal')">Cancel</button>
+      <button class="btn-primary" onclick="saveWorker()">Save Worker</button>
+    </div>
+  </div>
+</div>
+
+<!-- User Modal -->
+<div class="modal-overlay" id="user-modal">
+  <div class="modal-box" style="max-width:500px;">
+    <div class="modal-head"><div class="modal-title" id="user-modal-title">Add User</div><button class="modal-close" onclick="closeModal('user-modal')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="um-id">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Username *</label><input type="text" class="form-control" id="um-username"></div>
+        <div class="form-group"><label class="form-label">Full Name</label><input type="text" class="form-control" id="um-fullname"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Password *</label><input type="password" class="form-control" id="um-password" placeholder="Min 8 chars"></div>
+        <div class="form-group"><label class="form-label">Role *</label>
+          <select class="form-control" id="um-role">
+            <option value="user">User (Add & View)</option>
+            <option value="admin">Admin (Full Access)</option>
+            <option value="superadmin">Super Admin (No Delete)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-control" id="um-email"></div>
+        <div class="form-group"><label class="form-label">Phone</label><input type="text" class="form-control" id="um-phone"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-secondary" onclick="closeModal('user-modal')">Cancel</button>
+      <button class="btn-primary" onclick="saveUser()">Save User</button>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal-box" style="max-width:800px;">
+    <div class="modal-head"><div class="modal-title" id="detail-modal-title">Details</div><button class="modal-close" onclick="closeModal('detail-modal')">✕</button></div>
+    <div class="modal-body" id="detail-modal-body"></div>
+    <div class="modal-foot">
+      <button class="btn-success" onclick="downloadDetailCSV()"><i class="bi bi-download"></i> Download CSV</button>
+      <button class="btn-secondary" onclick="closeModal('detail-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// ============================================================
+// APP STATE
+// ============================================================
+let currentUser = null;
+let appData = { workers: [], meters: [], readings: [], anomalies: [], users: [], masterReadings: [], settings: {} };
+let charts = {};
+let currentPage = 1;
+const PAGE_SIZE = 20;
+let detailData = [];
+let reportData = [];
+let filteredReadings = [], filteredMeters = [], filteredWorkers = [], filteredAnomalies = [], filteredUsers = [];
+
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('DOMContentLoaded', async () => {
+  const today = new Date();
+  document.getElementById('welcome-date').textContent =
+    'Bally Jute Mill — ' + today.toLocaleDateString('en-IN', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+  // Populate year/month dropdowns
+  populateYearMonthDropdowns();
+
+  // Check session
+  let savedUser = null;
+  try { savedUser = sessionStorage.getItem('emms_user'); } catch(e) {}
+  if (savedUser && savedUser !== 'undefined' && savedUser !== 'null') {
+    try {
+      currentUser = JSON.parse(savedUser);
+      if (currentUser && currentUser.username) { showApp(); savedUser = null; }
+      else { savedUser = null; }
+    } catch(e) { savedUser = null; }
+  }
+  if (!currentUser) {
+    setTimeout(() => {
+      document.getElementById('app-loader').style.display = 'none';
+      document.getElementById('login-screen').style.display = 'flex';
+    }, 2200);
+  }
+
+  // Setup nav clicks
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', () => {
+      const page = link.dataset.page;
+      if (page) showPage(page);
+    });
+  });
+});
+
+function populateYearMonthDropdowns() {
+  const thisYear = new Date().getFullYear();
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  ['readings-month-filter','rf-month'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = '<option value="">All Months</option>';
+    months.forEach((m,i) => el.innerHTML += `<option value="${i+1}">${m}</option>`);
+  });
+
+  ['readings-year-filter','anomaly-year-filter','rf-year','dash-year-filter'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = '';
+    for (let y = thisYear; y >= thisYear - 5; y--) {
+      el.innerHTML += `<option value="${y}" ${y===thisYear?'selected':''}>${y}</option>`;
+    }
+  });
+}
+
+// ============================================================
+// AUTH
+// ============================================================
+async function doLogin() {
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value;
+  if (!username || !password) return showToast('Please enter credentials','warning');
+
+  showLoading('Authenticating...');
+  const res = await apiCall('login', { username, password });
+  hideLoading();
+
+  if (res.success) {
+    currentUser = res.user;
+    sessionStorage.setItem('emms_user', JSON.stringify(currentUser));
+    showApp();
+  } else {
+    showToast(res.message || 'Login failed', 'error');
+  }
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Enter') { const ls = document.getElementById('login-screen'); if (ls.style.display !== 'none') doLogin(); } });
+
+function showApp() {
+  document.getElementById('app-loader').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = 'block';
+
+  document.getElementById('nav-username').textContent = currentUser.fullName || currentUser.username;
+  document.getElementById('user-avatar').textContent = (currentUser.fullName || currentUser.username)[0].toUpperCase();
+  document.getElementById('nav-role-badge').textContent = currentUser.role.toUpperCase();
+
+  // Role-based UI
+  if (currentUser.role === 'user') {
+    document.getElementById('nav-users').style.display = 'none';
+    document.getElementById('readings-action-th') && (document.getElementById('readings-action-th').style.display = 'none');
+  }
+  if (currentUser.role !== 'admin') {
+    document.getElementById('nav-users') && (document.getElementById('nav-users').style.display = 'none');
+  }
+
+  // Build mobile nav
+  buildMobileNav();
+  loadAllData();
+  showPage('dashboard');
+}
+
+function doLogout() {
+  sessionStorage.removeItem('emms_user');
+  currentUser = null;
+  document.getElementById('main-app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-username').value = '';
+  document.getElementById('login-password').value = '';
+}
+
+// ============================================================
+// API LAYER — Vercel + Supabase
+// Calls our own /api/index.js serverless function
+// ============================================================
+const API_ENDPOINT = '/api/index';
+
+async function apiCall(action, data) {
+  data = data || {};
+  try {
+    const res = await fetch(API_ENDPOINT + '?action=' + encodeURIComponent(action) + '&data=' + encodeURIComponent(JSON.stringify(data)));
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return await res.json();
+  } catch(e) {
+    console.warn('API error [' + action + ']:', e.message);
+    return getMockData(action, data);
+  }
+}
+
+
+// MOCK DATA for demo (when API URL not set)
+function getMockData(action, data) {
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const depts = ['Weaving','Spinning','Processing','Finishing','Maintenance'];
+  
+  if (action === 'getDashboardData') {
+    const monthly = Array.from({length:12},(_,i)=>({month:i+1,year:2025,label:months[i]+' 25',consumption:Math.floor(Math.random()*5000)+3000,count:Math.floor(Math.random()*15)+10}));
+    return {success:true,data:{summary:{totalMeters:500,activeMeters:487,inactiveWorkers:13,totalReadingsThisMonth:18,totalConsumptionThisMonth:'48750.00',totalConsumptionLastMonth:'45200.00',consumptionChange:'7.9',openAnomalies:5,totalWorkers:500,activeWorkers:487,masterMeterReadings:6},monthlyTrend:monthly,topConsumers:Array.from({length:10},(_,i)=>({MeterNumber:'MTR'+String(i+1).padStart(4,'0'),WorkerName:'Worker '+(i+1),Consumption:Math.floor(Math.random()*500)+300,Month:new Date().getMonth()+1,Year:new Date().getFullYear()})),deptConsumption:Object.fromEntries(depts.map(d=>[d,Math.floor(Math.random()*20000)+5000]))}};
+  }
+  if (action === 'getWorkers') return {success:true,data:Array.from({length:20},(_,i)=>({WorkerID:'WRK'+String(i+1).padStart(4,'0'),EmployeeCode:'EMP'+(1001+i),Name:'Worker '+(i+1),Department:depts[i%depts.length],Designation:['Operator','Supervisor','Technician'][i%3],Phone:'900000'+i,Email:'w'+i+'@mill.com',JoiningDate:'2020-0'+((i%9)+1)+'-01',Status:i>17?'inactive':'active',MeterNumber:'MTR'+String(i+1).padStart(4,'0'),CreatedAt:new Date().toISOString()}))};
+  if (action === 'getMeters') return {success:true,data:Array.from({length:20},(_,i)=>({MeterID:'MTR'+String(i+1).padStart(4,'0'),MeterNumber:'MTR'+String(i+1).padStart(4,'0'),Location:depts[i%depts.length]+' Block '+Math.ceil((i+1)/5),WorkerID:'WRK'+String(i+1).padStart(4,'0'),WorkerName:'Worker '+(i+1),InstallDate:'2020-01-01',Status:i>17?'inactive':'active',MaxLoad:'10',Phase:'1-Phase',Remarks:'',CreatedAt:new Date().toISOString()}))};
+  if (action === 'getReadings') {
+    return {success:true,data:Array.from({length:60},(_,i)=>{const m=(i%6)+1;const y=2025;const c=Math.floor(Math.random()*250)+50;return {ReadingID:'RDG'+String(i+1).padStart(6,'0'),MeterID:'MTR'+String((i%20)+1).padStart(4,'0'),MeterNumber:'MTR'+String((i%20)+1).padStart(4,'0'),WorkerID:'WRK'+String((i%20)+1).padStart(4,'0'),WorkerName:'Worker '+((i%20)+1),ReadingDate:y+'-'+String(m).padStart(2,'0')+'-01',ReadingValue:1000+c,PreviousReading:1000,Consumption:c,Month:m,Year:y,EnteredBy:'admin',IsAnomaly:c>200?'true':'false',AnomalyReason:c>200?'High consumption':'',CreatedAt:new Date().toISOString()}})};
+  }
+  if (action === 'getAnomalies') return {success:true,data:Array.from({length:8},(_,i)=>({AnomalyID:'ANM'+i,MeterID:'MTR'+String(i+1).padStart(4,'0'),MeterNumber:'MTR'+String(i+1).padStart(4,'0'),WorkerID:'WRK'+String(i+1).padStart(4,'0'),WorkerName:'Worker '+(i+1),Month:new Date().getMonth()+1,Year:2025,Consumption:Math.floor(Math.random()*500)+300,AverageConsumption:'120.00',DeviationPercent:(Math.random()*200+50).toFixed(2),Type:i%3===0?'LOW':'HIGH',Status:'open',AlertSent:'false',CreatedAt:new Date().toISOString()}))};
+  if (action === 'getUsers') return {success:true,data:[{UserID:'USR001',Username:'admin',Role:'admin',Email:'admin@mill.com',FullName:'System Admin',Status:'active',CreatedAt:new Date().toISOString(),LastLogin:new Date().toISOString()},{UserID:'USR002',Username:'superadmin',Role:'superadmin',Email:'superadmin@mill.com',FullName:'Super Admin',Status:'active',CreatedAt:new Date().toISOString(),LastLogin:''}]};
+  if (action === 'getMasterReadings') return {success:true,data:[{ReadingID:'MMR001',ReadingDate:'2025-06-01',ReadingValue:95000,PreviousReading:90000,Consumption:5000,Month:6,Year:2025,EnteredBy:'admin',Remarks:'Monthly reading',CreatedAt:new Date().toISOString()}]};
+  if (action === 'getInactiveWithConsumption') return {success:true,data:[{MeterNumber:'MTR0018',WorkerName:'Worker 18',Month:new Date().getMonth()+1,Year:2025,Consumption:145,Department:'Weaving',WorkerPhone:'9000018'}]};
+  if (action === 'getSettings') return {success:true,data:{smtp_email:'',supervisor_emails:'',alert_threshold_high:'150',alert_threshold_low:'20',company_name:'Bally Jute Mill'}};
+  if (action === 'getYearlyConsumption') return {success:true,data:Array.from({length:12},(_,i)=>({month:i+1,label:months[i],total:Math.floor(Math.random()*5000)+2000,count:Math.floor(Math.random()*15)+5}))};
+  if (action === 'getReport') return getMockReportData(data);
+  return {success:true,data:[]};
+}
+
+function getMockReportData(data) {
+  const readings = getMockData('getReadings',{}).data;
+  return {success:true,data:readings,count:readings.length};
+}
+
+// ============================================================
+// LOAD ALL DATA
+// ============================================================
+async function loadAllData() {
+  showLoading('Loading data...');
+  const [workers, meters, readings, anomalies, masterReadings, inactive] = await Promise.all([
+    apiCall('getWorkers'), apiCall('getMeters'), apiCall('getReadings'),
+    apiCall('getAnomalies'), apiCall('getMasterReadings'), apiCall('getInactiveWithConsumption')
+  ]);
+
+  appData.workers = workers.data || [];
+  appData.meters = meters.data || [];
+  appData.readings = readings.data || [];
+  appData.anomalies = anomalies.data || [];
+  appData.masterReadings = masterReadings.data || [];
+  appData.inactiveConsuming = inactive.data || [];
+
+  hideLoading();
+  renderCurrentPage();
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  document.getElementById('page-' + page)?.classList.add('active');
+  document.querySelector(`[data-page="${page}"]`)?.classList.add('active');
+  document.getElementById('mobile-nav')?.classList.remove('open');
+  currentPage = 1;
+  renderCurrentPage(page);
+  window.scrollTo(0,0);
+}
+
+function renderCurrentPage(page) {
+  const activePage = page || document.querySelector('.page.active')?.id?.replace('page-','');
+  switch(activePage) {
+    case 'dashboard': renderDashboard(); break;
+    case 'readings': renderReadings(); break;
+    case 'meters': renderMeters(); break;
+    case 'workers': renderWorkers(); break;
+    case 'anomalies': renderAnomalies(); break;
+    case 'reports': setupReports(); break;
+    case 'users': renderUsers(); break;
+    case 'settings': renderSettings(); break;
+  }
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+async function renderDashboard() {
+  showLoading('Building dashboard...');
+  const res = await apiCall('getDashboardData');
+  hideLoading();
+  if (!res.success) return;
+  const d = res.data;
+  const s = d.summary;
+
+  document.getElementById('ws-meters').textContent = s.activeMeters;
+  document.getElementById('ws-workers').textContent = s.activeWorkers;
+  document.getElementById('ws-anomalies').textContent = s.openAnomalies;
+
+  // Stats cards
+  document.getElementById('dash-stats').innerHTML = `
+    <div class="stat-card" onclick="showPage('readings')">
+      <div class="stat-icon" style="background:#e8f0fe;"><i class="bi bi-lightning-charge-fill" style="color:#1a3a6b;"></i></div>
+      <div class="stat-label">This Month Consumption</div>
+      <div class="stat-value">${Number(s.totalConsumptionThisMonth).toLocaleString()}</div>
+      <div class="stat-change ${parseFloat(s.consumptionChange)>=0?'up':'down'}">
+        <i class="bi bi-arrow-${parseFloat(s.consumptionChange)>=0?'up':'down'}-short"></i>${Math.abs(s.consumptionChange)}% vs last month
+      </div>
+    </div>
+    <div class="stat-card success" onclick="showPage('meters')">
+      <div class="stat-icon" style="background:#dcfce7;"><i class="bi bi-speedometer2" style="color:#166534;"></i></div>
+      <div class="stat-label">Active Meters</div>
+      <div class="stat-value">${s.activeMeters}</div>
+      <div class="stat-change" style="color:var(--text3);">of ${s.totalMeters} total</div>
+    </div>
+    <div class="stat-card" onclick="showPage('workers')">
+      <div class="stat-icon" style="background:#fff7ed;"><i class="bi bi-people-fill" style="color:#c2410c;"></i></div>
+      <div class="stat-label">Active Workers</div>
+      <div class="stat-value">${s.activeWorkers}</div>
+      <div class="stat-change down"><i class="bi bi-person-x-fill"></i>${s.inactiveWorkers} inactive</div>
+    </div>
+    <div class="stat-card danger" onclick="showPage('anomalies')">
+      <div class="stat-icon" style="background:#fee2e2;"><i class="bi bi-exclamation-triangle-fill" style="color:#dc2626;"></i></div>
+      <div class="stat-label">Open Anomalies</div>
+      <div class="stat-value">${s.openAnomalies}</div>
+      <div class="stat-change down">Requires attention</div>
+    </div>
+    <div class="stat-card warning" onclick="showInactiveDetail()">
+      <div class="stat-icon" style="background:#fef3c7;"><i class="bi bi-wifi-off" style="color:#d97706;"></i></div>
+      <div class="stat-label">Inactive Still Consuming</div>
+      <div class="stat-value">${appData.inactiveConsuming.length}</div>
+      <div class="stat-change down">Click to investigate</div>
+    </div>
+    <div class="stat-card" onclick="showPage('readings')">
+      <div class="stat-icon" style="background:#f0fdf4;"><i class="bi bi-clipboard-data-fill" style="color:#15803d;"></i></div>
+      <div class="stat-label">Readings This Month</div>
+      <div class="stat-value">${s.totalReadingsThisMonth}</div>
+      <div class="stat-change" style="color:var(--text3);">Sub-meter entries</div>
+    </div>
+  `;
+
+  // Inactive alert
+  if (appData.inactiveConsuming.length > 0) {
+    document.getElementById('inactive-alert').style.display = 'block';
+    document.getElementById('inactive-list').innerHTML = appData.inactiveConsuming.map(r =>
+      `<div style="display:flex;gap:16px;align-items:center;padding:8px 12px;background:rgba(255,193,7,.08);border-radius:8px;margin-bottom:6px;flex-wrap:wrap;">
+        <span style="font-weight:600;">${r.WorkerName}</span>
+        <span style="color:var(--text3);">Meter: ${r.MeterNumber}</span>
+        <span style="color:var(--danger);">${r.Consumption} units — Month ${r.Month}</span>
+        <span class="badge-inactive">${r.Department || 'N/A'}</span>
+      </div>`
+    ).join('');
+  }
+
+  // Monthly chart
+  const labels = d.monthlyTrend.map(m => m.label);
+  const vals = d.monthlyTrend.map(m => m.consumption);
+  buildChart('chart-monthly', 'bar', labels, vals, 'Consumption (Units)');
+
+  // Dept pie
+  const deptLabels = Object.keys(d.deptConsumption);
+  const deptVals = Object.values(d.deptConsumption);
+  buildChart('chart-dept', 'doughnut', deptLabels, deptVals, 'Consumption');
+
+  // Top consumers
+  const topLabels = d.topConsumers.map(r => r.MeterNumber + '\n' + r.WorkerName);
+  const topVals = d.topConsumers.map(r => parseFloat(r.Consumption));
+  buildChart('chart-top', 'bar', topLabels, topVals, 'Units', 'horizontal');
+
+  // Anomaly chart
+  const high = appData.anomalies.filter(a => a.Type === 'HIGH').length;
+  const low = appData.anomalies.filter(a => a.Type === 'LOW').length;
+  buildChart('chart-anomaly', 'pie', ['High Consumption', 'Low Consumption', 'Normal'], [high, low, Math.max(0, 10 - high - low)], '', '', ['#dc3545','#ffc107','#198754']);
+
+  // Recent readings
+  document.getElementById('recent-tbody').innerHTML = appData.readings.slice(-10).reverse().map(r =>
+    `<tr class="${r.IsAnomaly==='true'?'anomaly-row':''}">
+      <td>${r.MeterNumber}</td><td>${r.WorkerName}</td>
+      <td>${r.Consumption} units</td><td>${r.Month}/${r.Year}</td>
+      <td>${r.IsAnomaly==='true'?'<span class="badge-anomaly">⚠ Anomaly</span>':'<span class="badge-active">Normal</span>'}</td>
+    </tr>`
+  ).join('') || '<tr><td colspan="5" class="empty-state">No readings yet</td></tr>';
+
+  loadYearConsumption();
+}
+
+async function loadYearConsumption() {
+  const year = document.getElementById('dash-year-filter')?.value || new Date().getFullYear();
+  const res = await apiCall('getYearlyConsumption', { year });
+  if (!res.success) return;
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('monthly-tbody').innerHTML = res.data.map((m,i) =>
+    `<tr style="cursor:pointer;" onclick="showMonthDetail(${m.month},${year})">
+      <td><strong>${months[i]}</strong></td>
+      <td><strong>${Number(m.total).toLocaleString()}</strong> units</td>
+      <td>${m.count}</td>
+      <td>${m.count > 0 ? (m.total/m.count).toFixed(1) : '—'}</td>
+      <td><button class="btn-edit-sm" onclick="event.stopPropagation();showMonthDetail(${m.month},${year})">View</button></td>
+    </tr>`
+  ).join('');
+}
+
+function showMonthDetail(month, year) {
+  const data = appData.readings.filter(r => parseInt(r.Month)===parseInt(month) && parseInt(r.Year)===parseInt(year));
+  const monthNames = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('detail-modal-title').textContent = `${monthNames[month]} ${year} — Detailed Readings (${data.length} records)`;
+  document.getElementById('detail-modal-body').innerHTML = `
+    <div class="table-responsive">
+      <table class="emms-table">
+        <thead><tr><th>Meter #</th><th>Worker</th><th>Previous</th><th>Current</th><th>Units</th><th>Anomaly</th></tr></thead>
+        <tbody>${data.map(r=>`<tr class="${r.IsAnomaly==='true'?'anomaly-row':''}">
+          <td>${r.MeterNumber}</td><td>${r.WorkerName}</td>
+          <td>${r.PreviousReading}</td><td>${r.ReadingValue}</td>
+          <td><strong>${r.Consumption}</strong></td>
+          <td>${r.IsAnomaly==='true'?'<span class="badge-anomaly">⚠ '+r.AnomalyReason+'</span>':'Normal'}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>`;
+  detailData = data;
+  document.querySelector('#detail-modal').classList.add('open');
+}
+
+function showInactiveDetail() {
+  document.getElementById('detail-modal-title').textContent = 'Inactive Workers — Active Consumption';
+  document.getElementById('detail-modal-body').innerHTML = `
+    <div class="table-responsive">
+      <table class="emms-table">
+        <thead><tr><th>Worker</th><th>Meter #</th><th>Month</th><th>Units</th><th>Dept</th><th>Phone</th></tr></thead>
+        <tbody>${appData.inactiveConsuming.map(r=>`<tr class="inactive-consuming">
+          <td>${r.WorkerName}</td><td>${r.MeterNumber}</td><td>${r.Month}/${r.Year}</td>
+          <td><strong style="color:var(--danger);">${r.Consumption}</strong></td>
+          <td>${r.Department||'—'}</td><td>${r.WorkerPhone||'—'}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>`;
+  detailData = appData.inactiveConsuming;
+  document.querySelector('#detail-modal').classList.add('open');
+}
+
+// ============================================================
+// READINGS
+// ============================================================
+function renderReadings() {
+  filteredReadings = [...appData.readings].reverse();
+  renderReadingsTable();
+  populateMasterMeterInfo();
+  if (currentUser.role === 'user') {
+    document.getElementById('readings-action-th').style.display = 'none';
+  }
+}
+
+function filterReadings() {
+  const q = document.getElementById('readings-search').value.toLowerCase();
+  const month = document.getElementById('readings-month-filter').value;
+  const year = document.getElementById('readings-year-filter').value;
+  filteredReadings = appData.readings.filter(r => {
+    const matchQ = !q || r.MeterNumber?.toLowerCase().includes(q) || r.WorkerName?.toLowerCase().includes(q);
+    const matchM = !month || String(r.Month) === month;
+    const matchY = !year || String(r.Year) === year;
+    return matchQ && matchM && matchY;
+  }).reverse();
+  currentPage = 1;
+  renderReadingsTable();
+}
+
+function renderReadingsTable() {
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageData = filteredReadings.slice(start, start + PAGE_SIZE);
+  const canEdit = currentUser.role !== 'user';
+  document.getElementById('readings-tbody').innerHTML = pageData.map(r =>
+    `<tr class="${r.IsAnomaly==='true'?'anomaly-row':''}">
+      <td><strong>${r.MeterNumber}</strong></td>
+      <td>${r.WorkerName}</td>
+      <td>${r.ReadingDate}</td>
+      <td>${r.PreviousReading}</td>
+      <td>${r.ReadingValue}</td>
+      <td><strong>${r.Consumption}</strong></td>
+      <td>${r.Month}/${r.Year}</td>
+      <td>${r.IsAnomaly==='true'?`<span class="badge-anomaly" title="${r.AnomalyReason}">⚠ Anomaly</span>`:'<span class="badge-active">Normal</span>'}</td>
+      <td>${canEdit?`<button class="btn-edit-sm" onclick="editReading('${r.ReadingID}')">Edit</button>
+      <button class="btn-danger-sm" onclick="deleteReading('${r.ReadingID}')">Del</button>`:''}</td>
+    </tr>`
+  ).join('') || '<tr><td colspan="9"><div class="empty-state"><i class="bi bi-lightning-slash"></i>No readings found</div></td></tr>';
+  document.getElementById('readings-count').textContent = `${filteredReadings.length} records`;
+  renderPagination('readings-pagination', filteredReadings.length, 'renderReadingsTable');
+}
+
+function populateMasterMeterInfo() {
+  const last = appData.masterReadings[appData.masterReadings.length - 1];
+  document.getElementById('master-total').textContent = last ? `${Number(last.ReadingValue).toLocaleString()} units (Last: ${last.ReadingDate})` : 'No readings yet';
+}
+
+// ============================================================
+// METERS
+// ============================================================
+function renderMeters() {
+  filteredMeters = [...appData.meters];
+  const stats = { total: appData.meters.length, active: appData.meters.filter(m=>m.Status==='active').length, inactive: appData.meters.filter(m=>m.Status==='inactive').length };
+  document.getElementById('meter-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Total Meters</div><div class="stat-value">${stats.total}</div></div>
+    <div class="stat-card success"><div class="stat-label">Active</div><div class="stat-value">${stats.active}</div></div>
+    <div class="stat-card danger"><div class="stat-label">Inactive</div><div class="stat-value">${stats.inactive}</div></div>
+  `;
+  populateWorkerSelect('mm2-worker');
+  if (currentUser.role === 'user') { document.getElementById('add-meter-btn').style.display = 'none'; document.getElementById('meters-action-th').style.display = 'none'; }
+  renderMetersTable();
+}
+
+function filterMeters() {
+  const q = document.getElementById('meters-search').value.toLowerCase();
+  const status = document.getElementById('meters-status-filter').value;
+  filteredMeters = appData.meters.filter(m => {
+    const matchQ = !q || m.MeterNumber?.toLowerCase().includes(q) || m.WorkerName?.toLowerCase().includes(q) || m.Location?.toLowerCase().includes(q);
+    const matchS = !status || m.Status === status;
+    return matchQ && matchS;
+  });
+  renderMetersTable();
+}
+
+function renderMetersTable() {
+  const canEdit = ['admin','superadmin'].includes(currentUser.role);
+  document.getElementById('meters-tbody').innerHTML = filteredMeters.map(m =>
+    `<tr>
+      <td><strong>${m.MeterNumber}</strong></td>
+      <td>${m.WorkerName||'Unassigned'}</td>
+      <td>${m.Location||'—'}</td>
+      <td>${m.Phase||'—'}</td>
+      <td>${m.MaxLoad||'—'} kW</td>
+      <td>${m.InstallDate||'—'}</td>
+      <td><span class="badge-${m.Status}">${m.Status}</span></td>
+      <td>${canEdit?`<button class="btn-edit-sm" onclick="editMeter('${m.MeterID}')">Edit</button>
+        ${currentUser.role==='admin'?`<button class="btn-danger-sm" onclick="deleteMeter('${m.MeterID}')">Del</button>`:''}`:''}</td>
+    </tr>`
+  ).join('') || '<tr><td colspan="8"><div class="empty-state"><i class="bi bi-speedometer2"></i>No meters found</div></td></tr>';
+  document.getElementById('meters-count').textContent = `${filteredMeters.length} records`;
+}
+
+// ============================================================
+// WORKERS
+// ============================================================
+function renderWorkers() {
+  filteredWorkers = [...appData.workers];
+  const stats = { total: appData.workers.length, active: appData.workers.filter(w=>w.Status==='active').length, inactive: appData.workers.filter(w=>w.Status==='inactive').length };
+  document.getElementById('worker-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Total Workers</div><div class="stat-value">${stats.total}</div></div>
+    <div class="stat-card success"><div class="stat-label">Active</div><div class="stat-value">${stats.active}</div></div>
+    <div class="stat-card danger"><div class="stat-label">Inactive / Left</div><div class="stat-value">${stats.inactive}</div></div>
+  `;
+  // Populate dept filter
+  const depts = [...new Set(appData.workers.map(w=>w.Department).filter(Boolean))];
+  const df = document.getElementById('workers-dept-filter');
+  df.innerHTML = '<option value="">All Departments</option>' + depts.map(d=>`<option>${d}</option>`).join('');
+
+  if (currentUser.role === 'user') { document.getElementById('add-worker-btn').style.display = 'none'; document.getElementById('workers-action-th').style.display = 'none'; }
+  renderWorkersTable();
+}
+
+function filterWorkers() {
+  const q = document.getElementById('workers-search').value.toLowerCase();
+  const dept = document.getElementById('workers-dept-filter').value;
+  const status = document.getElementById('workers-status-filter').value;
+  filteredWorkers = appData.workers.filter(w => {
+    const matchQ = !q || w.Name?.toLowerCase().includes(q) || w.EmployeeCode?.toLowerCase().includes(q) || w.Department?.toLowerCase().includes(q);
+    const matchD = !dept || w.Department === dept;
+    const matchS = !status || w.Status === status;
+    return matchQ && matchD && matchS;
+  });
+  renderWorkersTable();
+}
+
+function renderWorkersTable() {
+  const canEdit = ['admin','superadmin'].includes(currentUser.role);
+  document.getElementById('workers-tbody').innerHTML = filteredWorkers.map(w =>
+    `<tr>
+      <td>${w.EmployeeCode||'—'}</td>
+      <td><strong>${w.Name}</strong></td>
+      <td>${w.Department||'—'}</td>
+      <td>${w.Designation||'—'}</td>
+      <td>${w.MeterNumber||'—'}</td>
+      <td>${w.JoiningDate||'—'}</td>
+      <td><span class="badge-${w.Status}">${w.Status}</span></td>
+      <td>${canEdit?`<button class="btn-edit-sm" onclick="editWorker('${w.WorkerID}')">Edit</button>
+        ${currentUser.role==='admin'?`<button class="btn-danger-sm" onclick="deleteWorker('${w.WorkerID}')">Del</button>`:''}`:''}</td>
+    </tr>`
+  ).join('') || '<tr><td colspan="8"><div class="empty-state"><i class="bi bi-people"></i>No workers found</div></td></tr>';
+  document.getElementById('workers-count').textContent = `${filteredWorkers.length} records`;
+}
+
+// ============================================================
+// ANOMALIES
+// ============================================================
+function renderAnomalies() {
+  filteredAnomalies = [...appData.anomalies];
+  const high = appData.anomalies.filter(a=>a.Type==='HIGH').length;
+  const low = appData.anomalies.filter(a=>a.Type==='LOW').length;
+  const open = appData.anomalies.filter(a=>a.Status==='open').length;
+  document.getElementById('anomaly-stats').innerHTML = `
+    <div class="stat-card danger"><div class="stat-label">High Consumption</div><div class="stat-value">${high}</div></div>
+    <div class="stat-card warning"><div class="stat-label">Low Consumption</div><div class="stat-value">${low}</div></div>
+    <div class="stat-card"><div class="stat-label">Open Anomalies</div><div class="stat-value">${open}</div></div>
+    <div class="stat-card"><div class="stat-label">Inactive Consuming</div><div class="stat-value">${appData.inactiveConsuming.length}</div></div>
+  `;
+  document.getElementById('anomaly-summary-text').textContent =
+    `${open} open anomaly records detected — ${high} high consumption, ${low} abnormally low. Immediate supervisor review required.`;
+
+  // Inactive consuming table
+  document.getElementById('inactive-consuming-tbody').innerHTML = appData.inactiveConsuming.map(r =>
+    `<tr class="inactive-consuming">
+      <td><strong>${r.WorkerName}</strong></td>
+      <td>${r.MeterNumber}</td>
+      <td>${r.Month}/${r.Year}</td>
+      <td><strong style="color:var(--danger);">${r.Consumption} units</strong></td>
+      <td>${r.Department||'—'}</td>
+      <td><button class="btn-primary" style="padding:4px 10px;font-size:.75rem;" onclick="sendInactiveAlert('${r.WorkerName}','${r.MeterNumber}')">📧 Alert</button></td>
+    </tr>`
+  ).join('') || '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text3);">No inactive workers with active consumption ✓</td></tr>';
+
+  renderAnomaliesTable();
+}
+
+function filterAnomalies() {
+  const type = document.getElementById('anomaly-type-filter').value;
+  const year = document.getElementById('anomaly-year-filter').value;
+  filteredAnomalies = appData.anomalies.filter(a => (!type || a.Type===type) && (!year || String(a.Year)===year));
+  renderAnomaliesTable();
+}
+
+function renderAnomaliesTable() {
+  document.getElementById('anomalies-tbody').innerHTML = filteredAnomalies.map(a =>
+    `<tr class="anomaly-row">
+      <td>${a.MeterNumber}</td>
+      <td>${a.WorkerName}</td>
+      <td>${a.Month}/${a.Year}</td>
+      <td><strong>${a.Consumption}</strong></td>
+      <td>${a.AverageConsumption}</td>
+      <td>${a.DeviationPercent}%</td>
+      <td><span class="badge-${a.Type?.toLowerCase()==='high'?'high':'low'}">${a.Type}</span></td>
+      <td><span class="badge-${a.Status==='open'?'anomaly':'active'}">${a.Status}</span></td>
+      <td>${a.AlertSent==='true'?'✅ Sent':'<button class="btn-primary" style="padding:4px 10px;font-size:.75rem;" onclick="sendAnomalyAlertUI(\''+a.AnomalyID+'\',\''+a.WorkerName+'\',\''+a.MeterNumber+'\')">📧 Alert</button>'}</td>
+    </tr>`
+  ).join('') || '<tr><td colspan="9"><div class="empty-state"><i class="bi bi-check-circle"></i>No anomalies found</div></td></tr>';
+  document.getElementById('anomalies-count').textContent = `${filteredAnomalies.length} records`;
+}
+
+// ============================================================
+// REPORTS
+// ============================================================
+let reportChartInst = null;
+function setupReports() {
+  // populate meter/worker selects
+  const ms = document.getElementById('rf-meter');
+  ms.innerHTML = '<option value="">All Meters</option>' + appData.meters.map(m=>`<option value="${m.MeterNumber}">${m.MeterNumber} — ${m.WorkerName}</option>`).join('');
+  const ws = document.getElementById('rf-worker');
+  ws.innerHTML = '<option value="">All Workers</option>' + appData.workers.map(w=>`<option value="${w.WorkerID}">${w.Name} (${w.EmployeeCode})</option>`).join('');
+  generateReport();
+}
+
+function onReportTypeChange() {
+  const type = document.getElementById('report-type').value;
+  const show = (id, vis) => { const el = document.getElementById(id); if (el) el.style.display = vis ? '' : 'none'; };
+  show('rf-month-group', ['monthly','weekly'].includes(type));
+  show('rf-year-group', !['weekly','daily','inactive_consuming'].includes(type));
+  show('rf-quarter-group', type === 'quarterly');
+  show('rf-half-group', type === 'half_yearly');
+  show('rf-week-group', type === 'weekly');
+  show('rf-date-group', type === 'daily');
+  show('rf-meter-group', type === 'meter_wise');
+  show('rf-worker-group', type === 'worker_wise');
+}
+
+async function generateReport() {
+  const type = document.getElementById('report-type').value;
+  const filters = {
+    month: document.getElementById('rf-month')?.value,
+    year: document.getElementById('rf-year')?.value,
+    quarter: document.getElementById('rf-quarter')?.value,
+    half: document.getElementById('rf-half')?.value,
+    weekStart: document.getElementById('rf-week')?.value,
+    date: document.getElementById('rf-date')?.value,
+    meterNumber: document.getElementById('rf-meter')?.value,
+    workerID: document.getElementById('rf-worker')?.value,
+  };
+
+  showLoading('Generating report...');
+  const res = await apiCall('getReport', { reportType: type, filters });
+  hideLoading();
+  reportData = res.data || [];
+  document.getElementById('report-count').textContent = `${reportData.length} records`;
+  document.getElementById('report-table-title').textContent = `${type.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())} Report — ${reportData.length} records`;
+
+  renderReportTable(type, reportData);
+  renderReportChart(type, reportData);
+}
+
+function renderReportTable(type, data) {
+  const headers = ['MeterNumber','WorkerName','ReadingDate','PreviousReading','ReadingValue','Consumption','Month','Year','IsAnomaly'];
+  document.getElementById('report-thead-row').innerHTML = headers.map(h=>`<th>${h.replace(/([A-Z])/g,' $1').trim()}</th>`).join('');
+  document.getElementById('report-tbody').innerHTML = data.slice(0, 200).map(r =>
+    `<tr class="${r.IsAnomaly==='true'?'anomaly-row':''}">
+      ${headers.map(h => `<td>${h==='IsAnomaly'?(r[h]==='true'?'⚠ Anomaly':'Normal'):r[h]||'—'}</td>`).join('')}
+    </tr>`
+  ).join('') || '<tr><td colspan="9"><div class="empty-state"><i class="bi bi-search"></i>No data found</div></td></tr>';
+}
+
+function renderReportChart(type, data) {
+  if (reportChartInst) { reportChartInst.destroy(); reportChartInst = null; }
+  const canvas = document.getElementById('chart-report');
+  const ctx = canvas.getContext('2d');
+
+  // Group by month or meter
+  const grouped = {};
+  data.forEach(r => {
+    const key = type === 'meter_wise' ? r.MeterNumber : (type === 'worker_wise' ? r.WorkerName : `${r.Month}/${r.Year}`);
+    grouped[key] = (grouped[key] || 0) + parseFloat(r.Consumption || 0);
+  });
+
+  const labels = Object.keys(grouped).slice(0, 20);
+  const vals = labels.map(k => grouped[k]);
+  reportChartInst = new Chart(ctx, { type:'bar', data:{ labels, datasets:[{ label:'Consumption (Units)', data:vals, backgroundColor:'rgba(26,58,107,.7)', borderColor:'rgba(26,58,107,1)', borderWidth:1, borderRadius:4 }] }, options:{ responsive:true, plugins:{ legend:{display:false} }, scales:{ y:{ beginAtZero:true } } } });
+}
+
+// ============================================================
+// USERS
+// ============================================================
+async function renderUsers() {
+  if (currentUser.role !== 'admin') return;
+  showLoading();
+  const res = await apiCall('getUsers');
+  hideLoading();
+  appData.users = res.data || [];
+  filteredUsers = [...appData.users];
+  renderUsersTable();
+}
+
+function filterUsers() {
+  const q = document.getElementById('users-search').value.toLowerCase();
+  filteredUsers = appData.users.filter(u => u.Username?.toLowerCase().includes(q) || u.FullName?.toLowerCase().includes(q));
+  renderUsersTable();
+}
+
+function renderUsersTable() {
+  document.getElementById('users-tbody').innerHTML = filteredUsers.map(u =>
+    `<tr>
+      <td><strong>${u.Username}</strong></td>
+      <td>${u.FullName||'—'}</td>
+      <td><span class="badge-${u.Role==='admin'?'active':u.Role==='superadmin'?'anomaly':'inactive'}">${u.Role}</span></td>
+      <td>${u.Email||'—'}</td>
+      <td><span class="badge-${u.Status}">${u.Status}</span></td>
+      <td>${u.LastLogin ? new Date(u.LastLogin).toLocaleDateString('en-IN') : 'Never'}</td>
+      <td>
+        <button class="btn-edit-sm" onclick="editUser('${u.UserID}')">Edit</button>
+        <button class="btn-danger-sm" onclick="deleteUser('${u.UserID}')">Del</button>
+      </td>
+    </tr>`
+  ).join('');
+}
+
+// ============================================================
+// SETTINGS
+// ============================================================
+async function renderSettings() {
+  showLoading();
+  const res = await apiCall('getSettings');
+  hideLoading();
+  if (res.success) {
+    appData.settings = res.data || {};
+    const s = appData.settings;
+    document.getElementById('s-source-email').value = s.smtp_email || '';
+    document.getElementById('s-supervisor-emails').value = s.supervisor_emails || '';
+    document.getElementById('s-whatsapp').value = s.alert_whatsapp || '';
+    document.getElementById('s-high-threshold').value = s.alert_threshold_high || '150';
+    document.getElementById('s-low-threshold').value = s.alert_threshold_low || '20';
+    document.getElementById('s-company').value = s.company_name || 'Bally Jute Mill';
+    document.getElementById('s-emailjs-service').value = s.emailjs_service_id || '';
+    document.getElementById('s-emailjs-template').value = s.emailjs_template_id || '';
+    document.getElementById('s-emailjs-key').value = s.emailjs_public_key || '';
+  }
+  loadAlertLog();
+}
+
+async function saveSettings() {
+  showLoading('Saving settings...');
+  const data = {
+    smtp_email: document.getElementById('s-source-email').value,
+    supervisor_emails: document.getElementById('s-supervisor-emails').value,
+    alert_whatsapp: document.getElementById('s-whatsapp').value,
+    alert_threshold_high: document.getElementById('s-high-threshold').value,
+    alert_threshold_low: document.getElementById('s-low-threshold').value,
+    company_name: document.getElementById('s-company').value,
+    emailjs_service_id: document.getElementById('s-emailjs-service').value,
+    emailjs_template_id: document.getElementById('s-emailjs-template').value,
+    emailjs_public_key: document.getElementById('s-emailjs-key').value
+  };
+  const res = await apiCall('saveSettings', data);
+  hideLoading();
+  showToast(res.message || 'Settings saved!', res.success ? 'success' : 'error');
+}
+
+async function loadAlertLog() {
+  const res = await apiCall('getAlertLog');
+  const logs = (res.data || []).slice(-5).reverse();
+  document.getElementById('alert-log-list').innerHTML = logs.length ? logs.map(l =>
+    `<div style="padding:10px;border-left:3px solid ${l.Status==='sent'?'var(--success)':'var(--danger)'};margin-bottom:8px;background:var(--bg3);border-radius:0 6px 6px 0;font-size:.82rem;">
+      <div style="font-weight:600;">${l.AlertType} — ${l.Status}</div>
+      <div style="color:var(--text3);">${l.RecipientEmail || '—'}</div>
+      <div style="color:var(--text3);">${l.SentAt ? new Date(l.SentAt).toLocaleDateString('en-IN') : ''}</div>
+    </div>`
+  ).join('') : '<div style="color:var(--text3);font-size:.82rem;">No alerts sent yet</div>';
+}
+
+async function sendTestAlert() {
+  const email = document.getElementById('s-supervisor-emails').value.split(',')[0]?.trim();
+  if (!email) return showToast('Please add supervisor email in settings first', 'warning');
+  showLoading('Sending test alert...');
+  const res = await apiCall('sendAlertEmail', { to: email, subject: '✅ EMMS Test Alert - Bally Jute Mill', body: 'This is a test alert from the Electric Meter Monitoring System. Your alert configuration is working correctly.' });
+  hideLoading();
+  showToast(res.message, res.success ? 'success' : 'error');
+}
+
+// ============================================================
+// MODALS - READINGS
+// ============================================================
+function openReadingModal(readingId) {
+  document.getElementById('reading-modal-title').textContent = readingId ? 'Edit Reading' : 'Add Meter Reading';
+  document.getElementById('rm-id').value = readingId || '';
+  document.getElementById('rm-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('rm-current').value = '';
+  document.getElementById('rm-consumption').value = '';
+
+  // Populate meter select
+  const sel = document.getElementById('rm-meter');
+  sel.innerHTML = '<option value="">Select Meter...</option>' + appData.meters.filter(m=>m.Status==='active').map(m =>
+    `<option value="${m.MeterID}" data-worker="${m.WorkerName}" data-wid="${m.WorkerID}" data-meter="${m.MeterNumber}">${m.MeterNumber} — ${m.WorkerName}</option>`
+  ).join('');
+
+  if (readingId) {
+    const r = appData.readings.find(r => r.ReadingID === readingId);
+    if (r) {
+      sel.value = r.MeterID;
+      document.getElementById('rm-worker').value = r.WorkerName;
+      document.getElementById('rm-date').value = r.ReadingDate;
+      document.getElementById('rm-prev').value = r.PreviousReading;
+      document.getElementById('rm-current').value = r.ReadingValue;
+      document.getElementById('rm-consumption').value = r.Consumption;
+    }
+  }
+  document.getElementById('reading-modal').classList.add('open');
+}
+
+function openMasterReadingModal() {
+  document.getElementById('mm-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('mm-prev').value = appData.masterReadings[appData.masterReadings.length-1]?.ReadingValue || 0;
+  document.getElementById('mm-current').value = '';
+  document.getElementById('mm-remarks').value = '';
+  document.getElementById('master-modal').classList.add('open');
+}
+
+function onMeterSelect(sel) {
+  const opt = sel.options[sel.selectedIndex];
+  document.getElementById('rm-worker').value = opt.dataset.worker || '';
+  // Get last reading for this meter
+  const meterID = sel.value;
+  const lastReading = appData.readings.filter(r => r.MeterID === meterID).sort((a,b) => new Date(b.ReadingDate)-new Date(a.ReadingDate))[0];
+  document.getElementById('rm-prev').value = lastReading ? lastReading.ReadingValue : 0;
+}
+
+function calcConsumption() {
+  const curr = parseFloat(document.getElementById('rm-current').value) || 0;
+  const prev = parseFloat(document.getElementById('rm-prev').value) || 0;
+  document.getElementById('rm-consumption').value = Math.max(0, curr - prev);
+}
+
+async function saveReading() {
+  const id = document.getElementById('rm-id').value;
+  const sel = document.getElementById('rm-meter');
+  const opt = sel.options[sel.selectedIndex];
+  const data = {
+    ReadingID: id, MeterID: sel.value, MeterNumber: opt.dataset.meter,
+    WorkerID: opt.dataset.wid, WorkerName: opt.dataset.worker,
+    ReadingDate: document.getElementById('rm-date').value,
+    PreviousReading: document.getElementById('rm-prev').value,
+    ReadingValue: document.getElementById('rm-current').value,
+    EnteredBy: currentUser.username
+  };
+  if (!data.MeterID || !data.ReadingValue) return showToast('Please fill required fields', 'warning');
+  showLoading('Saving...');
+  const res = await apiCall(id ? 'updateReading' : 'addReading', data);
+  hideLoading();
+  if (res.success) {
+    showToast(res.message || 'Reading saved!', 'success');
+    closeModal('reading-modal');
+    await loadAllData();
+    renderReadings();
+  } else showToast(res.message, 'error');
+}
+
+async function saveMasterReading() {
+  const data = { ReadingDate: document.getElementById('mm-date').value, PreviousReading: document.getElementById('mm-prev').value, ReadingValue: document.getElementById('mm-current').value, Remarks: document.getElementById('mm-remarks').value, EnteredBy: currentUser.username };
+  if (!data.ReadingValue) return showToast('Enter current reading', 'warning');
+  showLoading();
+  const res = await apiCall('addMasterReading', data);
+  hideLoading();
+  if (res.success) { showToast('Master reading saved!','success'); closeModal('master-modal'); await loadAllData(); renderReadings(); } else showToast(res.message,'error');
+}
+
+async function editReading(id) { openReadingModal(id); }
+async function deleteReading(id) {
+  if (currentUser.role === 'user') return showToast('No permission','error');
+  const conf = await Swal.fire({ title:'Delete Reading?', text:'This cannot be undone.', icon:'warning', showCancelButton:true, confirmButtonColor:'#dc3545', confirmButtonText:'Delete' });
+  if (!conf.isConfirmed) return;
+  showLoading(); const res = await apiCall('deleteReading',{ReadingID:id}); hideLoading();
+  if (res.success) { showToast('Deleted','success'); await loadAllData(); renderReadings(); } else showToast(res.message,'error');
+}
+
+// ============================================================
+// MODALS - METERS
+// ============================================================
+function openMeterModal(meterId) {
+  document.getElementById('meter-modal-title').textContent = meterId ? 'Edit Meter' : 'Add Meter';
+  document.getElementById('mm2-id').value = meterId || '';
+  if (meterId) {
+    const m = appData.meters.find(m => m.MeterID === meterId);
+    if (m) { document.getElementById('mm2-number').value = m.MeterNumber; document.getElementById('mm2-location').value = m.Location; document.getElementById('mm2-phase').value = m.Phase; document.getElementById('mm2-load').value = m.MaxLoad; document.getElementById('mm2-install').value = m.InstallDate; document.getElementById('mm2-status').value = m.Status; document.getElementById('mm2-remarks').value = m.Remarks; }
+  } else { ['mm2-number','mm2-location','mm2-load','mm2-install','mm2-remarks'].forEach(id => document.getElementById(id).value = ''); }
+  document.getElementById('meter-modal').classList.add('open');
+}
+
+async function saveMeter() {
+  const id = document.getElementById('mm2-id').value;
+  const workerSel = document.getElementById('mm2-worker');
+  const workerOpt = workerSel.options[workerSel.selectedIndex];
+  const data = { MeterID:id, MeterNumber:document.getElementById('mm2-number').value, Location:document.getElementById('mm2-location').value, WorkerID:workerOpt.value, WorkerName:workerOpt.text, Phase:document.getElementById('mm2-phase').value, MaxLoad:document.getElementById('mm2-load').value, InstallDate:document.getElementById('mm2-install').value, Status:document.getElementById('mm2-status').value, Remarks:document.getElementById('mm2-remarks').value };
+  if (!data.MeterNumber) return showToast('Meter number required','warning');
+  showLoading(); const res = await apiCall(id?'updateMeter':'addMeter',data); hideLoading();
+  if (res.success) { showToast(res.message,'success'); closeModal('meter-modal'); await loadAllData(); renderMeters(); } else showToast(res.message,'error');
+}
+
+function editMeter(id) { openMeterModal(id); }
+async function deleteMeter(id) {
+  if (currentUser.role !== 'admin') return showToast('Only admin can delete','error');
+  const conf = await Swal.fire({title:'Delete Meter?',icon:'warning',showCancelButton:true,confirmButtonColor:'#dc3545',confirmButtonText:'Delete'});
+  if (!conf.isConfirmed) return;
+  showLoading(); const res = await apiCall('deleteMeter',{MeterID:id}); hideLoading();
+  if (res.success) { showToast('Deleted','success'); await loadAllData(); renderMeters(); } else showToast(res.message,'error');
+}
+
+// ============================================================
+// MODALS - WORKERS
+// ============================================================
+function openWorkerModal(workerId) {
+  document.getElementById('worker-modal-title').textContent = workerId ? 'Edit Worker' : 'Add Worker';
+  document.getElementById('wm-id').value = workerId || '';
+  if (workerId) {
+    const w = appData.workers.find(w => w.WorkerID === workerId);
+    if (w) { document.getElementById('wm-code').value=w.EmployeeCode; document.getElementById('wm-name').value=w.Name; document.getElementById('wm-dept').value=w.Department; document.getElementById('wm-designation').value=w.Designation; document.getElementById('wm-phone').value=w.Phone; document.getElementById('wm-email').value=w.Email; document.getElementById('wm-join').value=w.JoiningDate; document.getElementById('wm-meter').value=w.MeterNumber; document.getElementById('wm-status').value=w.Status; document.getElementById('wm-address').value=w.Address; }
+  } else { ['wm-code','wm-name','wm-designation','wm-phone','wm-email','wm-join','wm-meter','wm-address'].forEach(id=>document.getElementById(id).value=''); }
+  document.getElementById('worker-modal').classList.add('open');
+}
+
+async function saveWorker() {
+  const id = document.getElementById('wm-id').value;
+  const data = { WorkerID:id, EmployeeCode:document.getElementById('wm-code').value, Name:document.getElementById('wm-name').value, Department:document.getElementById('wm-dept').value, Designation:document.getElementById('wm-designation').value, Phone:document.getElementById('wm-phone').value, Email:document.getElementById('wm-email').value, JoiningDate:document.getElementById('wm-join').value, MeterNumber:document.getElementById('wm-meter').value, Status:document.getElementById('wm-status').value, Address:document.getElementById('wm-address').value };
+  if (!data.Name) return showToast('Worker name required','warning');
+  showLoading(); const res = await apiCall(id?'updateWorker':'addWorker',data); hideLoading();
+  if (res.success) { showToast(res.message,'success'); closeModal('worker-modal'); await loadAllData(); renderWorkers(); } else showToast(res.message,'error');
+}
+
+function editWorker(id) { openWorkerModal(id); }
+async function deleteWorker(id) {
+  if (currentUser.role !== 'admin') return showToast('Only admin can delete','error');
+  const conf = await Swal.fire({title:'Delete Worker?',icon:'warning',showCancelButton:true,confirmButtonColor:'#dc3545',confirmButtonText:'Delete'});
+  if (!conf.isConfirmed) return;
+  showLoading(); const res = await apiCall('deleteWorker',{WorkerID:id}); hideLoading();
+  if (res.success) { showToast('Deleted','success'); await loadAllData(); renderWorkers(); } else showToast(res.message,'error');
+}
+
+// ============================================================
+// MODALS - USERS
+// ============================================================
+function openUserModal(userId) {
+  document.getElementById('user-modal-title').textContent = userId ? 'Edit User' : 'Add User';
+  document.getElementById('um-id').value = userId || '';
+  if (userId) {
+    const u = appData.users.find(u=>u.UserID===userId);
+    if (u) { document.getElementById('um-username').value=u.Username; document.getElementById('um-fullname').value=u.FullName; document.getElementById('um-role').value=u.Role; document.getElementById('um-email').value=u.Email; document.getElementById('um-phone').value=u.Phone; }
+  } else { ['um-username','um-fullname','um-password','um-email','um-phone'].forEach(id=>document.getElementById(id).value=''); }
+  document.getElementById('user-modal').classList.add('open');
+}
+
+async function saveUser() {
+  const id = document.getElementById('um-id').value;
+  const data = { UserID:id, username:document.getElementById('um-username').value, fullName:document.getElementById('um-fullname').value, password:document.getElementById('um-password').value, role:document.getElementById('um-role').value, email:document.getElementById('um-email').value, phone:document.getElementById('um-phone').value };
+  if (!data.username || (!id && !data.password)) return showToast('Username and password required','warning');
+  showLoading(); const res = await apiCall(id?'updateUser':'addUser',data); hideLoading();
+  if (res.success) { showToast(res.message,'success'); closeModal('user-modal'); renderUsers(); } else showToast(res.message,'error');
+}
+
+function editUser(id) { openUserModal(id); }
+async function deleteUser(id) {
+  const conf = await Swal.fire({title:'Delete User?',icon:'warning',showCancelButton:true,confirmButtonColor:'#dc3545',confirmButtonText:'Delete'});
+  if (!conf.isConfirmed) return;
+  showLoading(); const res = await apiCall('deleteUser',{UserID:id}); hideLoading();
+  if (res.success) { showToast('Deleted','success'); renderUsers(); } else showToast(res.message,'error');
+}
+
+// ============================================================
+// ALERTS UI
+// ============================================================
+async function sendAnomalyAlertUI(anomalyId, workerName, meterNumber) {
+  const email = appData.settings.supervisor_emails?.split(',')[0]?.trim();
+  if (!email) return showToast('Set supervisor email in Settings first','warning');
+  showLoading('Sending alert...');
+  const res = await apiCall('sendAlertEmail', { to: email, subject: `⚠️ Anomaly Alert — ${workerName} (${meterNumber})`, body: `Anomaly detected for worker ${workerName} on meter ${meterNumber}. Please investigate immediately. — EMMS` });
+  hideLoading(); showToast(res.message, res.success?'success':'error');
+}
+
+async function sendInactiveAlert(workerName, meterNumber) {
+  const email = appData.settings.supervisor_emails?.split(',')[0]?.trim();
+  if (!email) return showToast('Set supervisor email in Settings first','warning');
+  showLoading('Sending...');
+  const res = await apiCall('sendAlertEmail', { to: email, subject: `⚠️ Inactive Worker Consuming Power — ${workerName}`, body: `ALERT: Worker ${workerName} (Meter: ${meterNumber}) is inactive/has left the mill but electricity consumption is continuing. Immediate action required to disconnect the connection.\n\n— EMMS Bally Jute Mill` });
+  hideLoading(); showToast(res.message, res.success?'success':'error');
+}
+
+// ============================================================
+// CHARTS
+// ============================================================
+function buildChart(canvasId, type, labels, data, label, orientation, colors) {
+  const ctx = document.getElementById(canvasId)?.getContext('2d');
+  if (!ctx) return;
+  if (charts[canvasId]) { charts[canvasId].destroy(); }
+  const defaultColors = ['rgba(26,58,107,.75)','rgba(200,169,74,.75)','rgba(25,135,84,.75)','rgba(220,53,69,.75)','rgba(13,202,240,.75)','rgba(108,117,125,.75)'];
+  charts[canvasId] = new Chart(ctx, {
+    type: type === 'horizontal' ? 'bar' : type,
+    data: { labels, datasets: [{ label, data, backgroundColor: colors || (type==='pie'||type==='doughnut'?defaultColors:defaultColors[0]), borderColor: type==='line'?'rgba(26,58,107,1)':undefined, borderWidth: type==='line'?2:1, fill: type==='line'?false:undefined, tension: 0.4, borderRadius: type==='bar'?4:0 }] },
+    options: { responsive:true, indexAxis: type==='horizontal'?'y':undefined, plugins:{ legend:{ display: type==='pie'||type==='doughnut', position:'right' } }, scales: type==='pie'||type==='doughnut'?{}:{ y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'}} } }
+  });
+}
+
+function switchChart(type, btn) {
+  document.querySelectorAll('.chart-actions .chart-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const labels = Object.keys(charts['chart-monthly']?.data?.labels||{});
+  if (charts['chart-monthly']) { charts['chart-monthly'].config.type = type; charts['chart-monthly'].update(); }
+}
+
+// ============================================================
+// CSV DOWNLOADS
+// ============================================================
+function toCSV(data, headers) {
+  const h = headers || Object.keys(data[0] || {});
+  const rows = [h.join(','), ...data.map(r => h.map(k => `"${(r[k]||'').toString().replace(/"/g,'""')}"`).join(','))];
+  return rows.join('\n');
+}
+
+function downloadCSV(filename, csv) {
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=filename; a.click(); URL.revokeObjectURL(url);
+}
+
+function downloadReadingsCSV() { downloadCSV('meter_readings.csv', toCSV(filteredReadings)); }
+function downloadMetersCSV() { downloadCSV('meters.csv', toCSV(filteredMeters)); }
+function downloadWorkersCSV() { downloadCSV('workers.csv', toCSV(filteredWorkers)); }
+function downloadAnomaliesCSV() { downloadCSV('anomalies.csv', toCSV(filteredAnomalies)); }
+function downloadReportCSV() { downloadCSV('report.csv', toCSV(reportData)); }
+function downloadDetailCSV() { downloadCSV('detail.csv', toCSV(detailData)); }
+function downloadChartData() { const d = appData.readings; downloadCSV('monthly_trend.csv', toCSV(d,['MeterNumber','WorkerName','Month','Year','Consumption'])); }
+function downloadChartDataDept() { const d = appData.workers; downloadCSV('dept_workers.csv', toCSV(d,['Department','Name','Status','MeterNumber'])); }
+function downloadTopConsumers() { const d = appData.readings.filter(r=>parseInt(r.Month)===new Date().getMonth()+1).sort((a,b)=>b.Consumption-a.Consumption).slice(0,10); downloadCSV('top_consumers.csv', toCSV(d)); }
+function downloadMonthlyReport() { const d = appData.readings; downloadCSV('yearly_monthly_report.csv', toCSV(d)); }
+
+// ============================================================
+// PAGINATION
+// ============================================================
+function renderPagination(containerId, total, cbFn) {
+  const pages = Math.ceil(total / PAGE_SIZE);
+  const container = document.getElementById(containerId);
+  if (!container || pages <= 1) { if(container) container.innerHTML = ''; return; }
+  let html = `<button class="page-btn" onclick="changePage(-1,'${cbFn}')" ${currentPage===1?'disabled':''}>‹</button>`;
+  for (let i = Math.max(1,currentPage-2); i <= Math.min(pages,currentPage+2); i++) {
+    html += `<button class="page-btn ${i===currentPage?'active':''}" onclick="gotoPage(${i},'${cbFn}')">${i}</button>`;
+  }
+  html += `<button class="page-btn" onclick="changePage(1,'${cbFn}')" ${currentPage===pages?'disabled':''}>›</button>`;
+  container.innerHTML = html;
+}
+function changePage(dir, fn) { currentPage += dir; window[fn](); }
+function gotoPage(p, fn) { currentPage = p; window[fn](); }
+
+// ============================================================
+// UTILS
+// ============================================================
+function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
+function populateWorkerSelect(selectId) {
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Unassigned</option>' + appData.workers.filter(w=>w.Status==='active').map(w=>`<option value="${w.WorkerID}">${w.Name} (${w.MeterNumber})</option>`).join('');
+}
+
+let loadingInst = null;
+function showLoading(msg) {
+  loadingInst = Swal.fire({ title:msg||'Loading...', allowOutsideClick:false, showConfirmButton:false, willOpen:()=>Swal.showLoading() });
+}
+function hideLoading() { Swal.close(); }
+function showToast(msg, type='info') {
+  Swal.fire({ toast:true, position:'top-end', showConfirmButton:false, timer:3000, timerProgressBar:true, icon:type, title:msg });
+}
+
+// THEME
+function toggleThemePicker() { document.getElementById('theme-picker').classList.toggle('open'); }
+function setTheme(theme) {
+  document.body.dataset.theme = theme;
+  localStorage.setItem('emms_theme', theme);
+  document.getElementById('theme-picker').classList.remove('open');
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('emms_theme');
+  if (saved) document.body.dataset.theme = saved;
+});
+
+// Mobile nav
+function buildMobileNav() {
+  document.getElementById('mobile-nav').innerHTML = document.getElementById('nav-links').innerHTML;
+  document.querySelectorAll('#mobile-nav .nav-link').forEach(l => {
+    l.addEventListener('click', () => { const p = l.dataset.page; if(p) showPage(p); document.getElementById('mobile-nav').classList.remove('open'); });
+  });
+}
+function toggleMobileNav() { document.getElementById('mobile-nav').classList.toggle('open'); }
+
+// Close theme picker on outside click
+document.addEventListener('click', e => {
+  const picker = document.getElementById('theme-picker');
+  if (picker && !picker.contains(e.target) && !e.target.closest('.theme-btn')) picker.classList.remove('open');
+});
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => { if(e.target === overlay) overlay.classList.remove('open'); });
+});
+</script>
+</body>
+</html>
