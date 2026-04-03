@@ -6,11 +6,7 @@
   ],
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/index.js" },
-
-    // FIX: root must point to index.html
     { "src": "/", "dest": "/public/index.html" },
-
-    // static files
     { "src": "/(.*)", "dest": "/public/$1" }
   ],
   "env": {
