@@ -1,0 +1,9 @@
+{
+  "name": "emms-bally-jute-mill",
+  "version": "1.0.0",
+  "description": "Electric Meter Monitoring System - Bally Jute Mill",
+  "private": true,
+  "engines": {
+    "node": "24.x"
+  }
+}
