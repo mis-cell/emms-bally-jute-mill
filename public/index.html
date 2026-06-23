@@ -215,6 +215,7 @@ input.form-control:focus,select.form-control:focus,textarea.form-control:focus{o
     <div class="nav-link" data-page="readings"><i class="bi bi-lightning-charge"></i>Readings</div>
     <div class="nav-link" data-page="meters"><i class="bi bi-speedometer2"></i>Meters</div>
     <div class="nav-link" data-page="workers"><i class="bi bi-people-fill"></i>Workers</div>
+    <div class="nav-link" id="nav-bulk" data-page="bulk"><i class="bi bi-cloud-upload-fill"></i>Bulk Upload</div>
     <div class="nav-link" data-page="anomalies"><i class="bi bi-exclamation-triangle-fill"></i>Anomalies</div>
     <div class="nav-link" data-page="reports"><i class="bi bi-file-earmark-bar-graph-fill"></i>Reports</div>
     <div class="nav-link" id="nav-users" data-page="users"><i class="bi bi-shield-person-fill"></i>Users</div>
@@ -386,6 +387,35 @@ input.form-control:focus,select.form-control:focus,textarea.form-control:focus{o
       </table>
     </div>
     <div class="table-footer"><span id="workers-count">0 records</span><div class="pagination-wrap" id="workers-pagination"></div></div>
+  </div>
+</div>
+
+<!-- BULK UPLOAD PAGE -->
+<div class="page" id="page-bulk">
+  <div class="page-header"><div class="page-title">☁️ Bulk Upload Center</div><div class="page-sub">Upload Workers, Meters &amp; Readings from CSV files in one shot</div></div>
+  <div class="stats-grid">
+    <div class="stat-card" onclick="openBulkModal('workers')" style="border-color:#6f42c1;">
+      <div class="stat-icon" style="background:rgba(111,66,193,.12);"><i class="bi bi-people-fill" style="color:#6f42c1;"></i></div>
+      <div class="stat-label">Bulk Upload Workers</div>
+      <div class="stat-value" style="font-size:1.2rem;">👷 Workers</div>
+      <div class="stat-change" style="color:var(--text3);">Click to upload CSV →</div>
+    </div>
+    <div class="stat-card" onclick="openBulkModal('meters')" style="border-color:#0d6efd;">
+      <div class="stat-icon" style="background:rgba(13,110,253,.12);"><i class="bi bi-speedometer2" style="color:#0d6efd;"></i></div>
+      <div class="stat-label">Bulk Upload Meters</div>
+      <div class="stat-value" style="font-size:1.2rem;">🔌 Meters</div>
+      <div class="stat-change" style="color:var(--text3);">Click to upload CSV →</div>
+    </div>
+    <div class="stat-card" onclick="openBulkModal('readings')" style="border-color:#198754;">
+      <div class="stat-icon" style="background:rgba(25,135,84,.12);"><i class="bi bi-lightning-charge-fill" style="color:#198754;"></i></div>
+      <div class="stat-label">Bulk Upload Readings</div>
+      <div class="stat-value" style="font-size:1.2rem;">⚡ Readings</div>
+      <div class="stat-change" style="color:var(--text3);">Click to upload CSV →</div>
+    </div>
+  </div>
+  <div class="bulk-info-box" style="margin-top:8px;">
+    <strong>How it works:</strong> Click any card above (or use the purple "Bulk Upload" button on each page). 1) Download the template CSV, 2) Fill in your rows, 3) Upload — you'll see a preview and a per-row success/error report.
+    <br><br><strong>Tip for Readings:</strong> the <code>MeterNumber</code> in your CSV must exactly match a meter that already exists in the system, so upload Meters first if needed.
   </div>
 </div>
 
@@ -874,6 +904,7 @@ function showApp(){
   document.getElementById('user-avatar').textContent=(currentUser.fullName||currentUser.username)[0].toUpperCase();
   document.getElementById('nav-role-badge').textContent=currentUser.role.toUpperCase();
   if(currentUser.role!=='admin')document.getElementById('nav-users').style.display='none';
+  if(currentUser.role==='user')document.getElementById('nav-bulk').style.display='none';
   buildMobileNav();
   const t=localStorage.getItem('emms_theme');if(t)document.body.dataset.theme=t;
   loadAllData();showPage('dashboard');
